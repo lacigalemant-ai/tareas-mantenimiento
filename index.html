@@ -1,96 +1,81 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Checklist Mantenimiento | 55 Tareas</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    * { font-family: 'Inter', sans-serif; }
-  .task-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); animation: slideIn 0.3s ease-out forwards; }
-  .task-card:hover { transform: translateY(-2px); }
-  .checkbox-wrapper input[type="checkbox"] { width: 1.5rem; height: 1.5rem; cursor: pointer; }
-  .completed .task-title { text-decoration: line-through; }
-  .priority-alta { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
-  .priority-media { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
-  .priority-baja { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-  .progress-bar { transition: width 0.5s ease-out; }
-  .tab-active { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: white; }
-  .tab-inactive { background: #f1f5f9; color: #475569; }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-  .modal-overlay { animation: fadeIn 0.2s ease-out; }
-  .modal-content { animation: slideUp 0.3s ease-out; }
-    textarea { resize: none; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Mantenimiento - Tiempo Real</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+      .task-card{transition:all 0.2s ease}
+      .task-card:hover{transform:translateY(-2px)}
+      .completed{opacity:0.6}
+      .completed.task-title{text-decoration:line-through}
+      .priority-alta{background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%)}
+      .priority-media{background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%)}
+      .priority-baja{background:linear-gradient(135deg,#10b981 0%,#059669 100%)}
+      .tab-active{background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);color:white}
+      .tab-inactive{background:#e2e8f0;color:#64748b}
+      .loading{animation:pulse 2s cubic-bezier(0.4,0,0.6,1) infinite}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    </style>
 </head>
-<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen">
-    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6 border border-slate-100">
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <div class="max-w-7xl mx-auto p-4 md:p-6">
+        <div class="bg-white rounded-2xl shadow-xl p-6 mb-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h1 class="text-3xl sm:text-4xl font-bold text-slate-800 mb-2 flex items-center gap-3">
-                        <i class="fa-solid fa-screwdriver-wrench text-indigo-600"></i>
-                        Checklist Mantenimiento
+                    <h1 class="text-3xl font-bold text-slate-800 mb-2">
+                        <i class="fa-solid fa-screwdriver-wrench text-indigo-600 mr-2"></i>
+                        Gestión de Mantenimiento
                     </h1>
-                    <p class="text-slate-500 text-sm sm:text-base">Gestión de tareas de mantenimiento por local</p>
+                    <p class="text-slate-600 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                        Sincronizado en tiempo real para todos
+                    </p>
                 </div>
-                <div class="grid grid-cols-2 gap-4 sm:flex sm:gap-6">
-                    <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-4 text-white shadow-lg">
-                        <div class="text-2xl sm:text-3xl font-bold" id="totalCount">0</div>
-                        <div class="text-xs sm:text-sm opacity-90">Total Tareas</div>
-                    </div>
-                    <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-4 text-white shadow-lg">
-                        <div class="text-2xl sm:text-3xl font-bold" id="completedCount">0</div>
-                        <div class="text-xs sm:text-sm opacity-90">Completadas</div>
-                    </div>
-                    <div class="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl p-4 text-white shadow-lg">
-                        <div class="text-2xl sm:text-3xl font-bold" id="pendingCount">0</div>
-                        <div class="text-xs sm:text-sm opacity-90">Pendientes</div>
-                    </div>
-                    <div class="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-4 text-white shadow-lg">
-                        <div class="text-2xl sm:text-3xl font-bold" id="progressPercent">0%</div>
-                        <div class="text-xs sm:text-sm opacity-90">Progreso</div>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-6">
-                <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
-                    <div id="progressBar" class="progress-bar h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full" style="width: 0%"></div>
-                </div>
-            </div>
-            <div class="mt-6 flex flex-col sm:flex-row gap-3">
-                <button id="addTaskBtn" class="flex-1 sm:flex-none px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3 text-base sm:text-lg">
-                    <i class="fa-solid fa-plus text-xl"></i> Nueva Tarea
-                </button>
-                <div class="flex gap-2 flex-1">
-                    <button id="tabPendientes" class="flex-1 px-6 py-3.5 rounded-xl font-semibold transition-all shadow-md flex items-center justify-center gap-2 tab-active">
-                        <i class="fa-solid fa-list-check"></i> Pendientes
+                <div class="flex flex-wrap gap-3">
+                    <button id="addTaskBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg">
+                        <i class="fa-solid fa-plus mr-2"></i>Nueva Tarea
                     </button>
-                    <button id="tabCompletadas" class="flex-1 px-6 py-3.5 rounded-xl font-semibold transition-all shadow-md flex items-center justify-center gap-2 tab-inactive">
-                        <i class="fa-solid fa-check-double"></i> Completadas
+                    <button id="exportData" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg">
+                        <i class="fa-solid fa-file-csv mr-2"></i>Exportar
                     </button>
                 </div>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <div class="text-slate-500 text-sm font-medium mb-1">Total</div>
+                    <div id="totalCount" class="text-3xl font-bold text-slate-800 loading">-</div>
+                </div>
+                <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-200">
+                    <div class="text-emerald-600 text-sm font-medium mb-1">Completadas</div>
+                    <div id="completedCount" class="text-3xl font-bold text-emerald-700 loading">-</div>
+                </div>
+                <div class="bg-amber-50 rounded-xl p-4 border border-amber-200">
+                    <div class="text-amber-600 text-sm font-medium mb-1">Pendientes</div>
+                    <div id="pendingCount" class="text-3xl font-bold text-amber-700 loading">-</div>
+                </div>
+                <div class="bg-indigo-50 rounded-xl p-4 border border-indigo-200">
+                    <div class="text-indigo-600 text-sm font-medium mb-1">Progreso</div>
+                    <div id="progressPercent" class="text-3xl font-bold text-indigo-700 loading">-</div>
+                </div>
+            <div class="mt-4 bg-slate-200 rounded-full h-3 overflow-hidden">
+                <div id="progressBar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500" style="width: 0%"></div>
             </div>
         </div>
-        <div id="filtrosPanel" class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-6 border border-slate-100">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">
-                        <i class="fa-solid fa-store text-indigo-600 mr-1"></i> Local
-                    </label>
-                    <select id="filterLocal" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Local</label>
+                    <select id="filterLocal" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
                         <option value="all">Todos los locales</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">
-                        <i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i> Prioridad
-                    </label>
-                    <select id="filterPrioridad" class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Prioridad</label>
+                    <select id="filterPrioridad" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
                         <option value="all">Todas</option>
                         <option value="Alta">Alta</option>
                         <option value="Media">Media</option>
@@ -98,235 +83,165 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">
-                        <i class="fa-solid fa-tags text-purple-600 mr-1"></i> Categoría
-                    </label>
-                    <select id="filterCategoria" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Categoría</label>
+                    <select id="filterCategoria" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
                         <option value="all">Todas</option>
-                        <option value="Eléctrica">Eléctrica</option>
                         <option value="Plomería">Plomería</option>
-                        <option value="Pintura">Pintura</option>
-                        <option value="Refrigeración">Refrigeración</option>
+                        <option value="Eléctrica">Eléctrica</option>
                         <option value="Carpintería">Carpintería</option>
+                        <option value="Pintura">Pintura</option>
                         <option value="Limpieza">Limpieza</option>
+                        <option value="Refrigeración">Refrigeración</option>
                         <option value="General">General</option>
                     </select>
                 </div>
                 <div class="flex items-end">
-                    <button id="resetFilters" class="w-full px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-rotate-left"></i> Limpiar filtros
+                    <button id="resetFilters" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2.5 rounded-xl font-semibold transition">
+                        <i class="fa-solid fa-rotate-left mr-2"></i>Limpiar
                     </button>
                 </div>
-            <div class="mt-4 flex flex-col sm:flex-row gap-3">
-                <button id="exportData" class="flex-1 sm:flex-none px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-download"></i> Exportar CSV
-                </button>
-                <button id="resetAll" class="flex-1 sm:flex-none px-6 py-2.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg font-medium transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-trash"></i> Reiniciar todo
-                </button>
             </div>
         </div>
-        <div id="tasksContainer" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
-        <div id="emptyState" class="hidden bg-white rounded-2xl shadow-lg p-12 text-center border border-slate-100">
-            <i class="fa-solid fa-clipboard-list text-6xl text-slate-300 mb-4"></i>
-            <h3 class="text-xl font-semibold text-slate-700 mb-2">No hay tareas que mostrar</h3>
-            <p class="text-slate-500">Intenta ajustar los filtros para ver más resultados</p>
+
+        <div class="flex gap-2 mb-6">
+            <button id="tabPendientes" class="flex-1 tab-active px-6 py-3 rounded-xl font-semibold transition shadow-md">
+                <i class="fa-solid fa-clock mr-2"></i>Pendientes
+            </button>
+            <button id="tabCompletadas" class="flex-1 tab-inactive px-6 py-3 rounded-xl font-semibold transition shadow-md">
+                <i class="fa-solid fa-check-circle mr-2"></i>Completadas
+            </button>
+        </div>
+
+        <div id="tasksContainer" class="space-y-4"></div>
+        <div id="emptyState" class="hidden text-center py-16">
+            <i class="fa-solid fa-inbox text-6xl text-slate-300 mb-4"></i>
+            <h3 class="text-xl font-semibold text-slate-600 mb-2">No hay tareas</h3>
+            <p class="text-slate-500">Las tareas aparecerán acá cuando alguien las agregue</p>
+        </div>
+        <div id="loadingState" class="text-center py-16">
+            <i class="fa-solid fa-spinner fa-spin text-6xl text-indigo-500 mb-4"></i>
+            <h3 class="text-xl font-semibold text-slate-600">Conectando...</h3>
         </div>
     </div>
-    <div id="taskModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
-        <div class="modal-overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="modal-content bg-white rounded-2xl shadow-2xl w-full max-w-2xl relative">
-                <div class="p-6 sm:p-8">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
-                            <i class="fa-solid fa-plus-circle text-indigo-600"></i>
-                            Nueva Tarea
-                        </h2>
-                        <button id="closeModal" class="text-slate-400 hover:text-slate-600 transition">
-                            <i class="fa-solid fa-xmark text-2xl"></i>
-                        </button>
+
+    <div id="taskModal" class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b border-slate-200 p-6 flex items-center justify-between rounded-t-2xl">
+                <h2 class="text-2xl font-bold text-slate-800"><i class="fa-solid fa-plus-circle text-indigo-600 mr-2"></i>Nueva Tarea</h2>
+                <button id="closeModal" class="text-slate-400 hover:text-slate-600 transition"><i class="fa-solid fa-times text-2xl"></i></button>
+            </div>
+            <form id="taskForm" class="p-6 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Local *</label>
+                        <select id="taskLocal" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"></select>
                     </div>
-                    <form id="taskForm" class="space-y-5">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">
-                                    <i class="fa-solid fa-store text-indigo-600 mr-1"></i> Local <span class="text-red-500">*</span>
-                                </label>
-                                <select id="taskLocal" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                                    <option value="">Seleccionar local</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">
-                                    <i class="fa-solid fa-tags text-purple-600 mr-1"></i> Categoría <span class="text-red-500">*</span>
-                                </label>
-                                <select id="taskCategoria" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                                    <option value="">Seleccionar categoría</option>
-                                    <option value="Eléctrica">Eléctrica</option>
-                                    <option value="Plomería">Plomería</option>
-                                    <option value="Pintura">Pintura</option>
-                                    <option value="Refrigeración">Refrigeración</option>
-                                    <option value="Carpintería">Carpintería</option>
-                                    <option value="Limpieza">Limpieza</option>
-                                    <option value="General">General</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">
-                                <i class="fa-solid fa-list-check text-emerald-600 mr-1"></i> Tarea <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" id="taskTarea" required placeholder="Ej: Reparar puerta de baño" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">
-                                    <i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i> Prioridad <span class="text-red-500">*</span>
-                                </label>
-                                <select id="taskPrioridad" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                                    <option value="">Seleccionar prioridad</option>
-                                    <option value="Alta">Alta</option>
-                                    <option value="Media">Media</option>
-                                    <option value="Baja">Baja</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">
-                                    <i class="fa-solid fa-calendar text-blue-600 mr-1"></i> Fecha Ingreso <span class="text-red-500">*</span>
-                                </label>
-                                <input type="date" id="taskFecha" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                            </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">
-                                <i class="fa-solid fa-comment-dots text-slate-600 mr-1"></i> Comentarios
-                            </label>
-                            <textarea id="taskComentarios" rows="3" placeholder="Agregar detalles, materiales necesarios, etc..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"></textarea>
-                        </div>
-                        <div class="flex flex-col sm:flex-row gap-3 pt-4">
-                            <button type="button" id="cancelTask" class="flex-1 px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition">
-                                Cancelar
-                            </button>
-                            <button type="submit" id="saveTaskBtn" class="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-lg font-semibold transition shadow-lg hover:shadow-xl">
-                                <i class="fa-solid fa-check mr-2"></i> Guardar Tarea
-                            </button>
-                        </div>
-                    </form>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Prioridad *</label>
+                        <select id="taskPrioridad" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                            <option value="Alta">Alta</option>
+                            <option value="Media" selected>Media</option>
+                            <option value="Baja">Baja</option>
+                        </select>
+                    </div>
                 </div>
-            </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Tarea *</label>
+                    <input type="text" id="taskTarea" required placeholder="Ej: Cambiar canilla de pileta" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Categoría *</label>
+                        <select id="taskCategoria" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                            <option value="General">General</option>
+                            <option value="Plomería">Plomería</option>
+                            <option value="Eléctrica">Eléctrica</option>
+                            <option value="Carpintería">Carpintería</option>
+                            <option value="Pintura">Pintura</option>
+                            <option value="Limpieza">Limpieza</option>
+                            <option value="Refrigeración">Refrigeración</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Fecha *</label>
+                        <input type="date" id="taskFecha" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Comentarios</label>
+                    <textarea id="taskComentarios" rows="3" placeholder="Detalles adicionales..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition resize-none"></textarea>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" id="cancelTask" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 py-3 rounded-xl font-semibold transition">Cancelar</button>
+                    <button type="submit" id="saveTaskBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg"><i class="fa-solid fa-check mr-2"></i>Guardar</button>
+                </div>
+            </form>
         </div>
     </div>
-<script>
+    <script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, query, orderBy, getDocs, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyADvmIbCWwUULaWYUt-0GMbeTMXX_BpwHY",
+  authDomain: "tareas-mantenimiento-c8d2f.firebaseapp.com",
+  projectId: "tareas-mantenimiento-c8d2f",
+  storageBucket: "tareas-mantenimiento-c8d2f.firebasestorage.app",
+  messagingSenderId: "1071995005162",
+  appId: "1:1071995005162:web:06bcc6a7f29e9e9538cf93"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const tasksCollection = collection(db, 'tareas');
+
 const LOCALES = ["CC 10 - Cordón","CC 20 - Pocitos","CC 50 - Intendencia","CC 70 - Garibaldi","CC 80 - Munoz","CC 89 - Montevideo Shopping","CC 95 - Atlántida","CC 97 - Portones","CC 99 - Pta. Carretas A","CC 101 - Tres Cruces A","CC 107 - Peatonal","CC 109 - Rodelú","CC 111 - Malvin","CC 113 - Pta. Carretas B","CC 120 - Nuevo Centro","CC 121 - Las Piedras","CC 150 - Fabrica","CC 910 - Ocean. Benito B","CC 920 - Sorocabana","CC 950/800 - Deposito/FNC"];
 
-const TASKS_DATA = [
-{id:1,local:"CC 120 - Nuevo Centro",tarea:"Cambiar canilla de pileta casi rota",categoría:"Plomería",prioridad:"Alta",fecha_ingreso:"2024-01-10",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:2,local:"CC 120 - Nuevo Centro",tarea:"Reparar cerámica levantada en entrada y atrás del freezer",categoría:"Carpintería",prioridad:"Media",fecha_ingreso:"2024-01-11",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:3,local:"CC 120 - Nuevo Centro",tarea:"Revisar máquina de chantilly: congela mucho",categoría:"Eléctrica",prioridad:"Alta",fecha_ingreso:"2024-01-12",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:4,local:"CC 120 - Nuevo Centro",tarea:"Reparar ventilador que no prende",categoría:"Eléctrica",prioridad:"Media",fecha_ingreso:"2024-01-13",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:5,local:"CC 120 - Nuevo Centro",tarea:"Ajustar estante del microondas, está flojo",categoría:"Carpintería",prioridad:"Baja",fecha_ingreso:"2024-01-14",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:6,local:"CC 99 - Pta. Carretas A",tarea:"Freezer de pinitos: pintar puerta",categoría:"Pintura",prioridad:"Baja",fecha_ingreso:"2024-01-08",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:7,local:"CC 99 - Pta. Carretas A",tarea:"Fabricar mueble para latas de cucuruchos",categoría:"Carpintería",prioridad:"Media",fecha_ingreso:"2024-01-09",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:8,local:"CC 99 - Pta. Carretas A",tarea:"Subir heladera de la venta",categoría:"General",prioridad:"Alta",fecha_ingreso:"2024-01-10",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:9,local:"CC 99 - Pta. Carretas A",tarea:"Tacos para bachero del depósito",categoría:"Plomería",prioridad:"Media",fecha_ingreso:"2024-01-11",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:10,local:"CC 99 - Pta. Carretas A",tarea:"Sillas para tapizar",categoría:"General",prioridad:"Baja",fecha_ingreso:"2024-01-12",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:11,local:"CC 99 - Pta. Carretas A",tarea:"Vitrina chica: vidrio con pintura que se sale",categoría:"Pintura",prioridad:"Media",fecha_ingreso:"2024-01-13",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:12,local:"CC 99 - Pta. Carretas A",tarea:"Limpieza paneles condensador: vitrinas, bachero y pinitos",categoría:"Limpieza",prioridad:"Alta",fecha_ingreso:"2024-01-14",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:13,local:"CC 113 - Pta. Carretas B",tarea:"Remaches faltantes pasador bachero 3",categoría:"Carpintería",prioridad:"Media",fecha_ingreso:"2024-01-09",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:14,local:"CC 113 - Pta. Carretas B",tarea:"Sillas para tapizar",categoría:"General",prioridad:"Baja",fecha_ingreso:"2024-01-10",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:15,local:"CC 113 - Pta. Carretas B",tarea:"Colgar espejo",categoría:"General",prioridad:"Baja",fecha_ingreso:"2024-01-11",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:16,local:"CC 113 - Pta. Carretas B",tarea:"Ajustar estantería",categoría:"Carpintería",prioridad:"Media",fecha_ingreso:"2024-01-12",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:17,local:"CC 113 - Pta. Carretas B",tarea:"Extractor para depósito",categoría:"Eléctrica",prioridad:"Alta",fecha_ingreso:"2024-01-13",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:18,local:"CC 113 - Pta. Carretas B",tarea:"Limpieza paneles condensador: vitrinas, bachero y pinitos",categoría:"Limpieza",prioridad:"Alta",fecha_ingreso:"2024-01-14",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:19,local:"CC 113 - Pta. Carretas B",tarea:"Retirar tacho de pintura del depósito",categoría:"General",prioridad:"Baja",fecha_ingreso:"2024-01-15",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:20,local:"CC 99 - Pta. Carretas A",tarea:"Instalar lockers",categoría:"Carpintería",prioridad:"Media",fecha_ingreso:"2024-01-15",estado:"Pendiente",comentarios:"Compartido con Carretas B",nota_cierre:"",fecha_cierre:""},
-{id:21,local:"CC 111 - Malvin",tarea:"Pintar mostrador (Caja)",categoría:"Pintura",prioridad:"Media",fecha_ingreso:"2024-01-12",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:22,local:"CC 111 - Malvin",tarea:"Cambiar papel que cubre pared venta (Roto)",categoría:"General",prioridad:"Baja",fecha_ingreso:"2024-01-13",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:23,local:"CC 111 - Malvin",tarea:"Reparar pileta venta: picada y muy oxidada",categoría:"Plomería",prioridad:"Alta",fecha_ingreso:"2024-01-14",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:24,local:"CC 111 - Malvin",tarea:"Reparar cerradura puerta costado: cuesta para trancar",categoría:"Carpintería",prioridad:"Alta",fecha_ingreso:"2024-01-15",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:25,local:"CC 111 - Malvin",tarea:"Reparar estante caja (Roto)",categoría:"Carpintería",prioridad:"Media",fecha_ingreso:"2024-01-16",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:26,local:"CC 101 - Tres Cruces A",tarea:"Cerrar puerta de caja de luz (sector caja)",categoría:"Eléctrica",prioridad:"Alta",fecha_ingreso:"2024-01-03",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:27,local:"CC 101 - Tres Cruces A",tarea:"Reparar bachero N°4: sensor de la puerta",categoría:"Eléctrica",prioridad:"Alta",fecha_ingreso:"2024-01-04",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:28,local:"CC 101 - Tres Cruces A",tarea:"Pintar y arreglar estantes de repisa depósito: poner cinta porque tienen mucho filo y lastima",categoría:"Carpintería",prioridad:"Media",fecha_ingreso:"2024-01-05",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:29,local:"CC 101 - Tres Cruces A",tarea:"Mesada de venta: tiene abertura y se cae el agua para el mueble",categoría:"Carpintería",prioridad:"Alta",fecha_ingreso:"2024-01-06",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:30,local:"CC 101 - Tres Cruces A",tarea:"Mueble de venta: poner algo atrás porque se caen las cosas",categoría:"Carpintería",prioridad:"Baja",fecha_ingreso:"2024-01-07",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:31,local:"CC 101 - Tres Cruces A",tarea:"Mesada de venta: poner zócalo para que no caiga agua",categoría:"Carpintería",prioridad:"Media",fecha_ingreso:"2024-01-08",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:32,local:"CC 101 - Tres Cruces A",tarea:"Baldosas de venta están rotas",categoría:"Carpintería",prioridad:"Media",fecha_ingreso:"2024-01-09",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:33,local:"CC 101 - Tres Cruces A",tarea:"Piso del entrepiso está levantado: está en desnivel",categoría:"Carpintería",prioridad:"Alta",fecha_ingreso:"2024-01-10",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:34,local:"CC 101 - Tres Cruces A",tarea:"Llevar los cuencos para el depósito: pinitos y pirolo 2 kg",categoría:"General",prioridad:"Baja",fecha_ingreso:"2024-01-11",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:35,local:"CC 101 - Tres Cruces A",tarea:"Dispensador para jabón pileta venta: no de pared",categoría:"General",prioridad:"Baja",fecha_ingreso:"2024-01-12",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:36,local:"CC 101 - Tres Cruces A",tarea:"Repisa debajo de la escalera: alargar la tabla",categoría:"Carpintería",prioridad:"Baja",fecha_ingreso:"2024-01-13",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:37,local:"CC 101 - Tres Cruces A",tarea:"Limpieza de pantallas: están muy sucias",categoría:"Limpieza",prioridad:"Media",fecha_ingreso:"2024-01-14",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:38,local:"CC 101 - Tres Cruces A",tarea:"Limpieza de extractores",categoría:"Limpieza",prioridad:"Media",fecha_ingreso:"2024-01-15",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:39,local:"CC 101 - Tres Cruces A",tarea:"Limpieza de motores de bacheros",categoría:"Limpieza",prioridad:"Alta",fecha_ingreso:"2024-01-16",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:40,local:"CC 101 - Tres Cruces A",tarea:"Enchufe para instalación de cámaras y wifi",categoría:"Eléctrica",prioridad:"Alta",fecha_ingreso:"2024-01-17",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:41,local:"CC 101 - Tres Cruces A",tarea:"Enchufe para bacheros: saltó la llave, cable suelto",categoría:"Eléctrica",prioridad:"Alta",fecha_ingreso:"2024-01-18",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:42,local:"CC 101 - Tres Cruces A",tarea:"Revisar heladera de granita: tiene agua, se lava y enseguida queda con agua",categoría:"Plomería",prioridad:"Media",fecha_ingreso:"2024-01-19",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:43,local:"CC 101 - Tres Cruces A",tarea:"Instalar ventilador para depósito y vestuario",categoría:"Eléctrica",prioridad:"Media",fecha_ingreso:"2024-01-20",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:44,local:"CC 101 - Tres Cruces A",tarea:"Reparar protector de motor de hoyos: tiene el tejido alambre suelto",categoría:"General",prioridad:"Alta",fecha_ingreso:"2024-01-21",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:45,local:"CC 101 - Tres Cruces A",tarea:"4 casilleros rotos: 3 cerradura rota y 1 puerta",categoría:"Carpintería",prioridad:"Media",fecha_ingreso:"2024-01-22",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:46,local:"CC 101 - Tres Cruces A",tarea:"Colocar protector a los 2 tubos de luz de cocina",categoría:"Eléctrica",prioridad:"Alta",fecha_ingreso:"2024-01-23",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:47,local:"CC 101 - Tres Cruces A",tarea:"Revisar timbre: a veces no suena y cuando suena es muy bajo",categoría:"Eléctrica",prioridad:"Baja",fecha_ingreso:"2024-01-24",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:48,local:"CC 121 - Las Piedras",tarea:"Freezer tapas de fondo pintar",categoría:"Pintura",prioridad:"Media",fecha_ingreso:"2026-06-14",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:49,local:"CC 121 - Las Piedras",tarea:"Paredes venta pintar",categoría:"Pintura",prioridad:"Media",fecha_ingreso:"2026-06-14",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:50,local:"CC 121 - Las Piedras",tarea:"Estanterías fondo pintar",categoría:"Pintura",prioridad:"Media",fecha_ingreso:"2026-06-14",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:51,local:"CC 121 - Las Piedras",tarea:"1 papelera para fondo",categoría:"General",prioridad:"Baja",fecha_ingreso:"2026-06-14",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:52,local:"CC 121 - Las Piedras",tarea:"Luz venta 2 bombitas",categoría:"Eléctrica",prioridad:"Alta",fecha_ingreso:"2026-06-14",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:53,local:"CC 121 - Las Piedras",tarea:"Patitas heladera venta",categoría:"Refrigeración",prioridad:"Media",fecha_ingreso:"2026-06-14",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:54,local:"CC 121 - Las Piedras",tarea:"Mesa fondo arreglar floja",categoría:"Carpintería",prioridad:"Media",fecha_ingreso:"2026-06-14",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""},
-{id:55,local:"CC 121 - Las Piedras",tarea:"Revisar WC fondo",categoría:"General",prioridad:"Media",fecha_ingreso:"2026-06-14",estado:"Pendiente",comentarios:"",nota_cierre:"",fecha_cierre:""}
-];
+const TASKS_DATA = [{"id":1,"local":"CC 120 - Nuevo Centro","tarea":"Cambiar canilla de pileta casi rota","categoría":"Plomería","prioridad":"Alta","fecha_ingreso":"2024-01-10","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":2,"local":"CC 120 - Nuevo Centro","tarea":"Reparar cerámica levantada en entrada y atrás del freezer","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-11","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":3,"local":"CC 120 - Nuevo Centro","tarea":"Revisar máquina de chantilly: congela mucho","categoría":"Eléctrica","prioridad":"Alta","fecha_ingreso":"2024-01-12","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":4,"local":"CC 120 - Nuevo Centro","tarea":"Reparar ventilador que no prende","categoría":"Eléctrica","prioridad":"Media","fecha_ingreso":"2024-01-13","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":5,"local":"CC 120 - Nuevo Centro","tarea":"Ajustar estante del microondas, está flojo","categoría":"Carpintería","prioridad":"Baja","fecha_ingreso":"2024-01-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":6,"local":"CC 99 - Pta. Carretas A","tarea":"Freezer de pinitos: pintar puerta","categoría":"Pintura","prioridad":"Baja","fecha_ingreso":"2024-01-08","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":7,"local":"CC 99 - Pta. Carretas A","tarea":"Fabricar mueble para latas de cucuruchos","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-09","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":8,"local":"CC 99 - Pta. Carretas A","tarea":"Subir heladera de la venta","categoría":"General","prioridad":"Alta","fecha_ingreso":"2024-01-10","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":9,"local":"CC 99 - Pta. Carretas A","tarea":"Tacos para bachero del depósito","categoría":"Plomería","prioridad":"Media","fecha_ingreso":"2024-01-11","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":10,"local":"CC 99 - Pta. Carretas A","tarea":"Sillas para tapizar","categoría":"General","prioridad":"Baja","fecha_ingreso":"2024-01-12","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":11,"local":"CC 99 - Pta. Carretas A","tarea":"Vitrina chica: vidrio con pintura que se sale","categoría":"Pintura","prioridad":"Media","fecha_ingreso":"2024-01-13","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":12,"local":"CC 99 - Pta. Carretas A","tarea":"Limpieza paneles condensador: vitrinas, bachero y pinitos","categoría":"Limpieza","prioridad":"Alta","fecha_ingreso":"2024-01-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":13,"local":"CC 113 - Pta. Carretas B","tarea":"Remaches faltantes pasador bachero 3","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-09","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":14,"local":"CC 113 - Pta. Carretas B","tarea":"Sillas para tapizar","categoría":"General","prioridad":"Baja","fecha_ingreso":"2024-01-10","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":15,"local":"CC 113 - Pta. Carretas B","tarea":"Colgar espejo","categoría":"General","prioridad":"Baja","fecha_ingreso":"2024-01-11","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":16,"local":"CC 113 - Pta. Carretas B","tarea":"Ajustar estantería","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-12","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":17,"local":"CC 113 - Pta. Carretas B","tarea":"Extractor para depósito","categoría":"Eléctrica","prioridad":"Alta","fecha_ingreso":"2024-01-13","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":18,"local":"CC 113 - Pta. Carretas B","tarea":"Limpieza paneles condensador: vitrinas, bachero y pinitos","categoría":"Limpieza","prioridad":"Alta","fecha_ingreso":"2024-01-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":19,"local":"CC 113 - Pta. Carretas B","tarea":"Retirar tacho de pintura del depósito","categoría":"General","prioridad":"Baja","fecha_ingreso":"2024-01-15","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":20,"local":"CC 99 - Pta. Carretas A","tarea":"Instalar lockers","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-15","estado":"Pendiente","comentarios":"Compartido con Carretas B","nota_cierre":"","fecha_cierre":""},{"id":21,"local":"CC 111 - Malvin","tarea":"Pintar mostrador (Caja)","categoría":"Pintura","prioridad":"Media","fecha_ingreso":"2024-01-12","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":22,"local":"CC 111 - Malvin","tarea":"Cambiar papel que cubre pared venta (Roto)","categoría":"General","prioridad":"Baja","fecha_ingreso":"2024-01-13","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":23,"local":"CC 111 - Malvin","tarea":"Reparar pileta venta: picada y muy oxidada","categoría":"Plomería","prioridad":"Alta","fecha_ingreso":"2024-01-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":24,"local":"CC 111 - Malvin","tarea":"Reparar cerradura puerta costado: cuesta para trancar","categoría":"Carpintería","prioridad":"Alta","fecha_ingreso":"2024-01-15","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":25,"local":"CC 111 - Malvin","tarea":"Reparar estante caja (Roto)","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-16","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":26,"local":"CC 101 - Tres Cruces A","tarea":"Cerrar puerta de caja de luz (sector caja)","categoría":"Eléctrica","prioridad":"Alta","fecha_ingreso":"2024-01-03","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":27,"local":"CC 101 - Tres Cruces A","tarea":"Reparar bachero N°4: sensor de la puerta","categoría":"Eléctrica","prioridad":"Alta","fecha_ingreso":"2024-01-04","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":28,"local":"CC 101 - Tres Cruces A","tarea":"Pintar y arreglar estantes de repisa depósito: poner cinta porque tienen mucho filo y lastima","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-05","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":29,"local":"CC 101 - Tres Cruces A","tarea":"Mesada de venta: tiene abertura y se cae el agua para el mueble","categoría":"Carpintería","prioridad":"Alta","fecha_ingreso":"2024-01-06","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":30,"local":"CC 101 - Tres Cruces A","tarea":"Mueble de venta: poner algo atrás porque se caen las cosas","categoría":"Carpintería","prioridad":"Baja","fecha_ingreso":"2024-01-07","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":31,"local":"CC 101 - Tres Cruces A","tarea":"Mesada de venta: poner zócalo para que no caiga agua","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-08","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":32,"local":"CC 101 - Tres Cruces A","tarea":"Baldosas de venta están rotas","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-09","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":33,"local":"CC 101 - Tres Cruces A","tarea":"Piso del entrepiso está levantado: está en desnivel","categoría":"Carpintería","prioridad":"Alta","fecha_ingreso":"2024-01-10","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":34,"local":"CC 101 - Tres Cruces A","tarea":"Llevar los cuencos para el depósito: pinitos y pirolo 2 kg","categoría":"General","prioridad":"Baja","fecha_ingreso":"2024-01-11","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":35,"local":"CC 101 - Tres Cruces A","tarea":"Dispensador para jabón pileta venta: no de pared","categoría":"General","prioridad":"Baja","fecha_ingreso":"2024-01-12","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":36,"local":"CC 101 - Tres Cruces A","tarea":"Repisa debajo de la escalera: alargar la tabla","categoría":"Carpintería","prioridad":"Baja","fecha_ingreso":"2024-01-13","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":37,"local":"CC 101 - Tres Cruces A","tarea":"Limpieza de pantallas: están muy sucias","categoría":"Limpieza","prioridad":"Media","fecha_ingreso":"2024-01-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":38,"local":"CC 101 - Tres Cruces A","tarea":"Limpieza de extractores","categoría":"Limpieza","prioridad":"Media","fecha_ingreso":"2024-01-15","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":39,"local":"CC 101 - Tres Cruces A","tarea":"Limpieza de motores de bacheros","categoría":"Limpieza","prioridad":"Alta","fecha_ingreso":"2024-01-16","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":40,"local":"CC 101 - Tres Cruces A","tarea":"Enchufe para instalación de cámaras y wifi","categoría":"Eléctrica","prioridad":"Alta","fecha_ingreso":"2024-01-17","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":41,"local":"CC 101 - Tres Cruces A","tarea":"Enchufe para bacheros: saltó la llave, cable suelto","categoría":"Eléctrica","prioridad":"Alta","fecha_ingreso":"2024-01-18","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":42,"local":"CC 101 - Tres Cruces A","tarea":"Revisar heladera de granita: tiene agua, se lava y enseguida queda con agua","categoría":"Plomería","prioridad":"Media","fecha_ingreso":"2024-01-19","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":43,"local":"CC 101 - Tres Cruces A","tarea":"Instalar ventilador para depósito y vestuario","categoría":"Eléctrica","prioridad":"Media","fecha_ingreso":"2024-01-20","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":44,"local":"CC 101 - Tres Cruces A","tarea":"Reparar protector de motor de hoyos: tiene el tejido alambre suelto","categoría":"General","prioridad":"Alta","fecha_ingreso":"2024-01-21","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":45,"local":"CC 101 - Tres Cruces A","tarea":"4 casilleros rotos: 3 cerradura rota y 1 puerta","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-22","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":46,"local":"CC 101 - Tres Cruces A","tarea":"Colocar protector a los 2 tubos de luz de cocina","categoría":"Eléctrica","prioridad":"Alta","fecha_ingreso":"2024-01-23","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":47,"local":"CC 101 - Tres Cruces A","tarea":"Revisar timbre: a veces no suena y cuando suena es muy bajo","categoría":"Eléctrica","prioridad":"Baja","fecha_ingreso":"2024-01-24","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":48,"local":"CC 121 - Las Piedras","tarea":"Freezer tapas de fondo pintar","categoría":"Pintura","prioridad":"Media","fecha_ingreso":"2026-06-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":49,"local":"CC 121 - Las Piedras","tarea":"Paredes venta pintar","categoría":"Pintura","prioridad":"Media","fecha_ingreso":"2026-06-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":50,"local":"CC 121 - Las Piedras","tarea":"Estanterías fondo pintar","categoría":"Pintura","prioridad":"Media","fecha_ingreso":"2026-06-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":51,"local":"CC 121 - Las Piedras","tarea":"1 papelera para fondo","categoría":"General","prioridad":"Baja","fecha_ingreso":"2026-06-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":52,"local":"CC 121 - Las Piedras","tarea":"Luz venta 2 bombitas","categoría":"Eléctrica","prioridad":"Alta","fecha_ingreso":"2026-06-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":53,"local":"CC 121 - Las Piedras","tarea":"Patitas heladera venta","categoría":"Refrigeración","prioridad":"Media","fecha_ingreso":"2026-06-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":54,"local":"CC 121 - Las Piedras","tarea":"Mesa fondo arreglar floja","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2026-06-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":55,"local":"CC 121 - Las Piedras","tarea":"Revisar WC fondo","categoría":"General","prioridad":"Media","fecha_ingreso":"2026-06-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""}];
 
 let tasks = [];
 let filteredTasks = [];
 let currentTab = 'Pendiente';
-let isSaving = false;
-const STORAGE_KEY = 'mantenimiento_tasks_v12';
 
 function init() {
     populateLocalDropdowns();
-    loadFromStorage();
     setupEventListeners();
-    applyFilters();
-    updateStats();
+    listenToTasks();
+}
+
+async function initializeDatabase() {
+    const snapshot = await getDocs(tasksCollection);
+    if (snapshot.empty) {
+        const batch = writeBatch(db);
+        TASKS_DATA.forEach(task => {
+            const docRef = doc(tasksCollection);
+            batch.set(docRef, {...task, createdAt: Date.now()});
+        });
+        await batch.commit();
+    }
+}
+
+function listenToTasks() {
+    const q = query(tasksCollection, orderBy('createdAt', 'desc'));
+    onSnapshot(q, (snapshot) => {
+        document.getElementById('loadingState').classList.add('hidden');
+        if (snapshot.empty) {
+            initializeDatabase();
+            return;
+        }
+        tasks = snapshot.docs.map(doc => ({ id: doc.id,...doc.data() }));
+        applyFilters();
+        updateStats();
+    });
 }
 
 function populateLocalDropdowns() {
     const filterLocal = document.getElementById('filterLocal');
     const taskLocal = document.getElementById('taskLocal');
     LOCALES.forEach(local => {
-        const option1 = document.createElement('option');
-        option1.value = local;
-        option1.textContent = local;
-        filterLocal.appendChild(option1);
-        const option2 = document.createElement('option');
-        option2.value = local;
-        option2.textContent = local;
-        taskLocal.appendChild(option2);
+        filterLocal.add(new Option(local, local));
+        taskLocal.add(new Option(local, local));
     });
-}
-
-function loadFromStorage() {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-        try {
-            tasks = JSON.parse(stored);
-            if (!tasks || tasks.length === 0) {
-                tasks = [...TASKS_DATA];
-                saveToStorage();
-            }
-        } catch(e) {
-            tasks = [...TASKS_DATA];
-            saveToStorage();
-        }
-    } else {
-        tasks = [...TASKS_DATA];
-        saveToStorage();
-    }
-}
-
-function saveToStorage() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
 }
 
 function setupEventListeners() {
@@ -339,11 +254,9 @@ function setupEventListeners() {
     document.getElementById('filterCategoria').addEventListener('change', applyFilters);
     document.getElementById('resetFilters').addEventListener('click', resetFilters);
     document.getElementById('exportData').addEventListener('click', exportToCSV);
-    document.getElementById('resetAll').addEventListener('click', resetAllTasks);
     document.getElementById('tabPendientes').addEventListener('click', () => switchTab('Pendiente'));
     document.getElementById('tabCompletadas').addEventListener('click', () => switchTab('Completado'));
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('taskFecha').value = today;
+    document.getElementById('taskFecha').value = new Date().toISOString().split('T')[0];
 }
 
 function switchTab(tab) {
@@ -351,74 +264,61 @@ function switchTab(tab) {
     const tabPendientes = document.getElementById('tabPendientes');
     const tabCompletadas = document.getElementById('tabCompletadas');
     if (tab === 'Pendiente') {
-        tabPendientes.classList.remove('tab-inactive');
-        tabPendientes.classList.add('tab-active');
-        tabCompletadas.classList.remove('tab-active');
-        tabCompletadas.classList.add('tab-inactive');
+        tabPendientes.classList.replace('tab-inactive','tab-active');
+        tabCompletadas.classList.replace('tab-active','tab-inactive');
     } else {
-        tabCompletadas.classList.remove('tab-inactive');
-        tabCompletadas.classList.add('tab-active');
-        tabPendientes.classList.remove('tab-active');
-        tabPendientes.classList.add('tab-inactive');
+        tabCompletadas.classList.replace('tab-inactive','tab-active');
+        tabPendientes.classList.replace('tab-active','tab-inactive');
     }
     applyFilters();
 }
 
-function openModal() {
-    document.getElementById('taskModal').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-}
-
+function openModal() { document.getElementById('taskModal').classList.remove('hidden'); }
 function closeModal() {
     document.getElementById('taskModal').classList.add('hidden');
-    document.body.style.overflow = 'auto';
     document.getElementById('taskForm').reset();
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('taskFecha').value = today;
+    document.getElementById('taskFecha').value = new Date().toISOString().split('T')[0];
 }
 
-function handleAddTask(e) {
+async function handle
+    async function handleAddTask(e) {
     e.preventDefault();
-    if (isSaving) return;
-    isSaving = true;
     const btn = document.getElementById('saveTaskBtn');
     btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Guardando...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Guardando...';
+
     const newTask = {
-        id: Date.now(),
         local: document.getElementById('taskLocal').value,
+        prioridad: document.getElementById('taskPrioridad').value,
         tarea: document.getElementById('taskTarea').value,
         categoría: document.getElementById('taskCategoria').value,
-        prioridad: document.getElementById('taskPrioridad').value,
         fecha_ingreso: document.getElementById('taskFecha').value,
-        estado: 'Pendiente',
         comentarios: document.getElementById('taskComentarios').value,
+        estado: 'Pendiente',
         nota_cierre: '',
-        fecha_cierre: ''
+        fecha_cierre: '',
+        createdAt: Date.now()
     };
-    tasks.unshift(newTask);
-    saveToStorage();
-    applyFilters();
-    updateStats();
+
+    await addDoc(tasksCollection, newTask);
     closeModal();
-    setTimeout(() => {
-        isSaving = false;
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Guardar Tarea';
-    }, 300);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i>Guardar';
 }
 
 function applyFilters() {
-    const localFilter = document.getElementById('filterLocal').value;
-    const prioridadFilter = document.getElementById('filterPrioridad').value;
-    const categoriaFilter = document.getElementById('filterCategoria').value;
+    const filterLocal = document.getElementById('filterLocal').value;
+    const filterPrioridad = document.getElementById('filterPrioridad').value;
+    const filterCategoria = document.getElementById('filterCategoria').value;
+
     filteredTasks = tasks.filter(task => {
-        if (task.estado!== currentTab) return false;
-        if (localFilter!== 'all' && task.local!== localFilter) return false;
-        if (prioridadFilter!== 'all' && task.prioridad!== prioridadFilter) return false;
-        if (categoriaFilter!== 'all' && task.categoría!== categoriaFilter) return false;
-        return true;
+        const matchEstado = task.estado === currentTab;
+        const matchLocal = filterLocal === 'all' || task.local === filterLocal;
+        const matchPrioridad = filterPrioridad === 'all' || task.prioridad === filterPrioridad;
+        const matchCategoria = filterCategoria === 'all' || task.categoría === filterCategoria;
+        return matchEstado && matchLocal && matchPrioridad && matchCategoria;
     });
+
     renderTasks();
 }
 
@@ -429,149 +329,125 @@ function resetFilters() {
     applyFilters();
 }
 
-function toggleTask(id) {
-    const task = tasks.find(t => t.id === id);
-    if (task) {
-        task.estado = task.estado === 'Pendiente'? 'Completado' : 'Pendiente';
-        if (task.estado === 'Completado' &&!task.fecha_cierre) {
-            task.fecha_cierre = new Date().toISOString().split('T')[0];
-        }
-        saveToStorage();
-        applyFilters();
-        updateStats();
-    }
-}
-
-function updateComment(id, comment) {
-    const task = tasks.find(t => t.id === id);
-    if (task) {
-        task.comentarios = comment;
-        saveToStorage();
-    }
-}
-
-function updateNotaCierre(id, nota) {
-    const task = tasks.find(t => t.id === id);
-    if (task) {
-        task.nota_cierre = nota;
-        saveToStorage();
-    }
-}
-
-function renderTasks() {
-    const container = document.getElementById('tasksContainer');
-    const emptyState = document.getElementById('emptyState');
-    if (filteredTasks.length === 0) {
-        container.innerHTML = '';
-        emptyState.classList.remove('hidden');
-        return;
-    }
-    emptyState.classList.add('hidden');
-    container.innerHTML = filteredTasks.map(task => {
-        const priorityClass = task.prioridad === 'Alta'? 'priority-alta' : task.prioridad === 'Media'? 'priority-media' : 'priority-baja';
-        const isCompleted = task.estado === 'Completado';
-        return `
-            <div class="task-card bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden ${isCompleted? 'completed' : ''}">
-                <div class="${priorityClass} h-2"></div>
-                <div class="p-5">
-                    <div class="flex items-start gap-4">
-                        <div class="checkbox-wrapper pt-1">
-                            <input type="checkbox" ${isCompleted? 'checked' : ''}
-                                onchange="toggleTask(${task.id})"
-                                class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between gap-2 mb-2">
-                                <h3 class="task-title text-lg font-semibold text-slate-800 leading-tight">${task.tarea}</h3>
-                                <span class="flex-shrink-0 px-3 py-1 text-xs font-semibold text-white rounded-full ${priorityClass}">
-                                    ${task.prioridad}
-                                </span>
-                            </div>
-                            <div class="flex flex-wrap gap-2 mb-3 text-sm">
-                                <span class="flex items-center gap-1 text-slate-600 bg-slate-100 px-2 py-1 rounded">
-                                    <i class="fa-solid fa-store text-xs"></i> ${task.local}
-                                </span>
-                                <span class="flex items-center gap-1 text-slate-600 bg-slate-100 px-2 py-1 rounded">
-                                    <i class="fa-solid fa-tag text-xs"></i> ${task.categoría}
-                                </span>
-                                <span class="flex items-center gap-1 text-slate-600 bg-slate-100 px-2 py-1 rounded">
-                                    <i class="fa-solid fa-calendar text-xs"></i> ${task.fecha_ingreso}
-                                </span>
-                                ${isCompleted && task.fecha_cierre? `
-                                <span class="flex items-center gap-1 text-emerald-700 bg-emerald-100 px-2 py-1 rounded">
-                                    <i class="fa-solid fa-check text-xs"></i> Cerrada: ${task.fecha_cierre}
-                                </span>
-                                ` : ''}
-                            </div>
-                            <div class="space-y-2">
-                                <div>
-                                    <label class="text-xs font-medium text-slate-500 mb-1 block">
-                                        <i class="fa-solid fa-comment-dots mr-1"></i>Comentarios
-                                    </label>
-                                    <textarea
-                                        placeholder="Agregar comentario..."
-                                        onchange="updateComment(${task.id}, this.value)"
-                                        class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition resize-none"
-                                        rows="2">${task.comentarios || ''}</textarea>
-                                </div>
-                                ${isCompleted? `
-                                <div>
-                                    <label class="text-xs font-medium text-emerald-700 mb-1 block">
-                                        <i class="fa-solid fa-clipboard-check mr-1"></i>Nota de cierre
-                                    </label>
-                                    <textarea
-                                        placeholder="Ej: Reparado por Juan. Se cambió grifería. Fecha: 18/06/26"
-                                        onchange="updateNotaCierre(${task.id}, this.value)"
-                                        class="w-full px-3 py-2 text-sm bg-emerald-50 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
-                                        rows="2">${task.nota_cierre || ''}</textarea>
-                                </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
 function updateStats() {
     const total = tasks.length;
     const completed = tasks.filter(t => t.estado === 'Completado').length;
     const pending = total - completed;
     const percent = total > 0? Math.round((completed / total) * 100) : 0;
+
     document.getElementById('totalCount').textContent = total;
     document.getElementById('completedCount').textContent = completed;
     document.getElementById('pendingCount').textContent = pending;
     document.getElementById('progressPercent').textContent = percent + '%';
     document.getElementById('progressBar').style.width = percent + '%';
+
+    document.querySelectorAll('.loading').forEach(el => el.classList.remove('loading'));
+}
+
+function renderTasks() {
+    const container = document.getElementById('tasksContainer');
+    const emptyState = document.getElementById('emptyState');
+
+    if (filteredTasks.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+    }
+
+    emptyState.classList.add('hidden');
+    container.innerHTML = filteredTasks.map(task => createTaskCard(task)).join('');
+
+    filteredTasks.forEach(task => {
+        const checkbox = document.getElementById(`check-${task.id}`);
+        const deleteBtn = document.getElementById(`delete-${task.id}`);
+        const noteInput = document.getElementById(`note-${task.id}`);
+
+        if (checkbox) checkbox.addEventListener('change', () => toggleTask(task.id));
+        if (deleteBtn) deleteBtn.addEventListener('click', () => deleteTask(task.id));
+        if (noteInput) noteInput.addEventListener('change', (e) => updateNote(task.id, e.target.value));
+    });
+}
+
+function createTaskCard(task) {
+    const isCompleted = task.estado === 'Completado';
+    const priorityClass = task.prioridad === 'Alta'? 'priority-alta' : task.prioridad === 'Media'? 'priority-media' : 'priority-baja';
+    const priorityIcon = task.prioridad === 'Alta'? 'fa-exclamation' : task.prioridad === 'Media'? 'fa-minus' : 'fa-arrow-down';
+
+    return `
+        <div class="task-card bg-white rounded-xl shadow-md p-5 border border-slate-200 ${isCompleted? 'completed' : ''}">
+            <div class="flex items-start gap-4">
+                <input type="checkbox" id="check-${task.id}" ${isCompleted? 'checked' : ''} class="mt-1 w-5 h-5 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+                <div class="flex-1">
+                    <div class="flex items-start justify-between gap-4 mb-3">
+                        <h3 class="task-title text-lg font-semibold text-slate-800 flex-1">${task.tarea}</h3>
+                        <button id="delete-${task.id}" class="text-slate-400 hover:text-red-600 transition">
+                            <i class="fa-solid fa-trash text-sm"></i>
+                        </button>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span class="px-3 py-1 ${priorityClass} text-white text-xs font-semibold rounded-full">
+                            <i class="fa-solid ${priorityIcon} mr-1"></i>${task.prioridad}
+                        </span>
+                        <span class="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-full">
+                            <i class="fa-solid fa-tag mr-1"></i>${task.categoría}
+                        </span>
+                        <span class="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-full">
+                            <i class="fa-solid fa-location-dot mr-1"></i>${task.local}
+                        </span>
+                        <span class="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-full">
+                            <i class="fa-solid fa-calendar mr-1"></i>${task.fecha_ingreso}
+                        </span>
+                    </div>
+                    ${task.comentarios? `<p class="text-sm text-slate-600 mb-3"><i class="fa-solid fa-comment-dots text-slate-400 mr-2"></i>${task.comentarios}</p>` : ''}
+                    ${isCompleted? `
+                        <div class="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                            <label class="block text-xs font-semibold text-emerald-700 mb-1">Nota de cierre:</label>
+                            <input type="text" id="note-${task.id}" value="${task.nota_cierre || ''}" placeholder="Ej: Reparado el 18/06 por Juan" class="w-full px-3 py-2 bg-white border border-emerald-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                            ${task.fecha_cierre? `<p class="text-xs text-emerald-600 mt-2"><i class="fa-solid fa-check mr-1"></i>Cerrado: ${task.fecha_cierre}</p>` : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+async function toggleTask(id) {
+    const task = tasks.find(t => t.id === id);
+    const newEstado = task.estado === 'Pendiente'? 'Completado' : 'Pendiente';
+    const updateData = { estado: newEstado };
+    if (newEstado === 'Completado') {
+        updateData.fecha_cierre = new Date().toISOString().split('T')[0];
+    } else {
+        updateData.fecha_cierre = '';
+        updateData.nota_cierre = '';
+    }
+    await updateDoc(doc(db, 'tareas', id), updateData);
+}
+
+async function updateNote(id, note) {
+    await updateDoc(doc(db, 'tareas', id), { nota_cierre: note });
+}
+
+async function deleteTask(id) {
+    if (confirm('¿Eliminar esta tarea?')) {
+        await updateDoc(doc(db, 'tareas', id), { estado: 'Eliminado' });
+    }
 }
 
 function exportToCSV() {
-    const headers = ['Local', 'Tarea', 'Categoría', 'Prioridad', 'Fecha Ingreso', 'Estado', 'Fecha Cierre', 'Comentarios', 'Nota Cierre'];
-    const rows = tasks.map(t => [
-        t.local, t.tarea, t.categoría, t.prioridad, t.fecha_ingreso, t.estado, t.fecha_cierre || '', t.comentarios || '', t.nota_cierre || ''
-    ]);
+    const headers = ['Local','Tarea','Categoría','Prioridad','Fecha Ingreso','Estado','Comentarios','Nota Cierre','Fecha Cierre'];
+    const rows = tasks.map(t => [t.local, t.tarea, t.categoría, t.prioridad, t.fecha_ingreso, t.estado, t.comentarios, t.nota_cierre, t.fecha_cierre]);
     let csv = headers.join(',') + '\n';
     rows.forEach(row => {
-        csv += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',') + '\n';
+        csv += row.map(v => `"${v}"`).join(',') + '\n';
     });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `tareas_mantenimiento_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-}
-
-function resetAllTasks() {
-    if (confirm('¿Estás seguro? Esto borrará todas las tareas y comentarios. Esta acción no se puede deshacer.')) {
-        localStorage.removeItem(STORAGE_KEY);
-        tasks = [...TASKS_DATA];
-        saveToStorage();
-        applyFilters();
-        updateStats();
-        alert('Tareas reiniciadas a los valores originales');
-    }
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tareas_mantenimiento_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
 }
 
 init();
