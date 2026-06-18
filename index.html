@@ -411,17 +411,31 @@ function createTaskCard(task) {
 }
 
 async function toggleTask(id) {
-    const task = tasks.find(t => t.id === id);
-    if (!task) return;
-    const newEstado = task.estado === 'Pendiente'? 'Completado' : 'Pendiente';
-    const updateData = { estado: newEstado };
-    if (newEstado === 'Completado') {
-        updateData.fecha_cierre = new Date().toISOString().split('T')[0];
-    } else {
-        updateData.fecha_cierre = '';
-        updateData.nota_cierre = '';
+    try {
+        const task = tasks.find(t => t.id === id);
+        if (!task) {
+            console.error('No se encontró la tarea con id:', id);
+            return;
+        }
+
+        const newEstado = task.estado === 'Pendiente'? 'Completado' : 'Pendiente';
+        const updateData = { estado: newEstado };
+
+        if (newEstado === 'Completado') {
+            updateData.fecha_cierre = new Date().toISOString().split('T')[0];
+        } else {
+            updateData.fecha_cierre = '';
+            updateData.nota_cierre = '';
+        }
+
+        console.log('Actualizando tarea:', id, updateData);
+        await updateDoc(doc(db, 'tareas', id), updateData);
+        console.log('Tarea actualizada OK');
+
+    } catch (error) {
+        console.error('Error al actualizar tarea:', error);
+        alert('Error al marcar la tarea. Revisá la consola F12');
     }
-    await updateDoc(doc(db, 'tareas', id), updateData);
 }
 
 async function updateNote(id, note) {
