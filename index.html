@@ -279,8 +279,7 @@ function closeModal() {
     document.getElementById('taskForm').reset();
     document.getElementById('taskFecha').value = new Date().toISOString().split('T')[0];
 }
-
-    async function handleAddTask(e) {
+async function handleAddTask(e) {
     e.preventDefault();
     const btn = document.getElementById('saveTaskBtn');
     btn.disabled = true;
