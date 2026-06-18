@@ -412,6 +412,7 @@ function createTaskCard(task) {
 
 async function toggleTask(id) {
     const task = tasks.find(t => t.id === id);
+    if (!task) return;
     const newEstado = task.estado === 'Pendiente'? 'Completado' : 'Pendiente';
     const updateData = { estado: newEstado };
     if (newEstado === 'Completado') {
@@ -428,7 +429,7 @@ async function updateNote(id, note) {
 }
 
 async function deleteTask(id) {
-    if (confirm('¿Eliminar esta tarea?')) {
+    if (confirm('¿Eliminar esta tarea? Esta acción no se puede deshacer.')) {
         await updateDoc(doc(db, 'tareas', id), { estado: 'Eliminado' });
     }
 }
