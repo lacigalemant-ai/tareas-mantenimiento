@@ -310,7 +310,7 @@ function applyFilters() {
     const filterCategoria = document.getElementById('filterCategoria').value;
 
     filteredTasks = tasks.filter(task => {
-        const matchEstado = task.estado === currentTab;
+        const matchEstado = task.estado === currentTab && task.estado!== 'Eliminado';
         const matchLocal = filterLocal === 'all' || task.local === filterLocal;
         const matchPrioridad = filterPrioridad === 'all' || task.prioridad === filterPrioridad;
         const matchCategoria = filterCategoria === 'all' || task.categoría === filterCategoria;
