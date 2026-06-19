@@ -247,31 +247,6 @@ function populateLocalDropdowns() {
         taskLocal.add(new Option(local, local));
     });
 }
-function exportToCSV() {
-    const headers = ['Local','Tarea','Categoría','Prioridad','Fecha Ingreso','Estado','Comentarios','Nota Cierre','Fecha Cierre'];
-    const rows = tasks.map(t => [
-        t.local, 
-        t.tarea, 
-        t.categoría, 
-        t.prioridad, 
-        t.fecha_ingreso, 
-        t.estado, 
-        t.comentarios || '', 
-        t.nota_cierre || '', 
-        t.fecha_cierre || ''
-    ]);
-    let csv = headers.join(',') + '\n';
-    rows.forEach(row => {
-        csv += row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',') + '\n';
-    });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `tareas_mantenimiento_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-}
         
 function setupEventListeners() {
     document.getElementById('addTaskBtn').addEventListener('click', openModal);
