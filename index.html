@@ -229,7 +229,7 @@ function listenToTasks() {
             initializeDatabase();
             return;
         }
-        tasks = snapshot.docs.map(doc => ({ id: doc.id,...doc.data() }));
+        tasks = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
         applyFilters();
         updateStats();
     });
@@ -429,7 +429,7 @@ async function toggleTask(id) {
         }
 
         console.log('Actualizando tarea:', id, updateData);
-        await updateDoc(doc(db, 'tareas', id), updateData);
+        await updateDoc(doc(db, 'tareas', task.docId), updateData);
         console.log('Tarea actualizada OK');
 
     } catch (error) {
@@ -439,15 +439,28 @@ async function toggleTask(id) {
 }
 
 async function updateNote(id, note) {
-    await updateDoc(doc(db, 'tareas', id), { nota_cierre: note });
-}
-
-async function deleteTask(id) {
-    if (confirm('¿Eliminar esta tarea? Esta acción no se puede deshacer.')) {
-        await updateDoc(doc(db, 'tareas', id), { estado: 'Eliminado' });
+    try {
+        const task = tasks.find(t => t.id === id);
+        if (!task) return;
+        await updateDoc(doc(db, 'tareas', task.docId), { nota_cierre: note });
+        console.log('Nota actualizada');
+    } catch (error) {
+        console.error('Error al actualizar nota:', error);
     }
 }
 
+async function deleteTask(id) {
+    try {
+        const task = tasks.find(t => t.id === id);
+        if (!task) return;
+        if (confirm('¿Eliminar esta tarea? Esta acción no se puede deshacer.')) {
+            await updateDoc(doc(db, 'tareas', task.docId), { estado: 'Eliminado' });
+            console.log('Tarea eliminada');
+        }
+    } catch (error) {
+        console.error('Error al eliminar tarea:', error);
+        alert('Error al eliminar. Revisá la consola F12');
+    }
 function exportToCSV() {
     const headers = ['Local','Tarea','Categoría','Prioridad','Fecha Ingreso','Estado','Comentarios','Nota Cierre','Fecha Cierre'];
     const rows = tasks.map(t => [t.local, t.tarea, t.categoría, t.prioridad, t.fecha_ingreso, t.estado, t.comentarios, t.nota_cierre, t.fecha_cierre]);
