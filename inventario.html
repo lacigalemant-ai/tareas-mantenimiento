@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario de Máquinas - Mantenimiento</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+      .table-container {
+        max-height: 600px;
+        overflow-y: auto;
+      }
+      table {
+        border-collapse: collapse;
+      }
+      th, td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      th {
+        background: linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);
+        color: white;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+      }
+      tr:hover {
+        background: #f1f5f9;
+      }
+      .local-btn {
+        transition: all 0.2s ease;
+      }
+      .local-btn:hover {
+        transform: translateY(-2px);
+      }
+      .local-btn.active {
+        background: linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);
+        color: white;
+      }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <div class="text-center mb-6">
+                <i class="fa-solid fa-lock text-5xl text-indigo-600 mb-4"></i>
+                <h1 class="text-3xl font-bold text-slate-800">Acceso Restringido</h1>
+                <p class="text-slate-600 mt-2">Inventario de Máquinas</p>
+            </div>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Contraseña</label>
+                    <input type="password" id="passwordInput" required placeholder="Ingresá la contraseña" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg">
+                    <i class="fa-solid fa-sign-in-alt mr-2"></i>Acceder
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden max-w-7xl mx-auto p-4 md:p-6">
+        <div class="bg-white rounded-2xl shadow-xl p-6 mb-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-slate-800 mb-2">
+                        <i class="fa-solid fa-microchip text-indigo-600 mr-2"></i>
+                        Inventario de Máquinas
+                    </h1>
+                    <p class="text-slate-600">Gestión de equipos por local</p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <button id="exportBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg">
+                        <i class="fa-solid fa-file-csv mr-2"></i>Descargar
+                    </button>
+                    <button id="importBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg">
+                        <i class="fa-solid fa-file-import mr-2"></i>Importar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Locales List -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h2 class="text-xl font-bold text-slate-800 mb-4">
+                    <i class="fa-solid fa-building mr-2"></i>Locales
+                </h2>
+                <div id="localesList" class="space-y-2 max-h-[600px] overflow-y-auto"></div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="lg:col-span-3 space-y-6">
+                <!-- Add Machine Form -->
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-slate-800 mb-4">
+                        <i class="fa-solid fa-plus-circle text-indigo-600 mr-2"></i>Agregar Máquina
+                    </h2>
+                    <form id="machineForm" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">Local *</label>
+                                <select id="formLocal" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                                    <option value="">Seleccionar local</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">Máquina *</label>
+                                <input type="text" id="formMaquina" required placeholder="Ej: Nevera, Horno, etc." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">Marca *</label>
+                                <input type="text" id="formMarca" required placeholder="Ej: Samsung, LG, etc." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">Número Máquina *</label>
+                                <input type="text" id="formNumero" required placeholder="Serial o número" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">Nota</label>
+                                <input type="text" id="formNota" placeholder="Información adicional" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg">
+                            <i class="fa-solid fa-plus mr-2"></i>Agregar Máquina
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Machines Table -->
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-slate-800 mb-4">
+                        <i class="fa-solid fa-table mr-2"></i><span id="tableTitle">Selecciona un local</span>
+                    </h2>
+                    <div class="table-container">
+                        <table class="w-full" id="machinesTable">
+                            <thead>
+                                <tr>
+                                    <th>Máquina</th>
+                                    <th>Marca</th>
+                                    <th>Número</th>
+                                    <th>Nota</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="machinesTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center text-slate-500 py-8">Selecciona un local para ver sus máquinas</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden File Input -->
+    <input type="file" id="fileInput" accept=".csv" style="display: none;">
+
+    <script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, getDocs, writeBatch, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyADvmIbCWwUULaWYUt-0GMbeTMXX_BpwHY",
+  authDomain: "tareas-mantenimiento-c8d2f.firebaseapp.com",
+  projectId: "tareas-mantenimiento-c8d2f",
+  storageBucket: "tareas-mantenimiento-c8d2f.firebasestorage.app",
+  messagingSenderId: "1071995005162",
+  appId: "1:1071995005162:web:06bcc6a7f29e9e9538cf93"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const machinesCollection = collection(db, 'maquinas');
+
+const LOCALES = ["CC 10 - Cordón","CC 20 - Pocitos","CC 50 - Intendencia","CC 70 - Garibaldi","CC 80 - Munoz","CC 89 - Montevideo Shopping","CC 95 - Atlántida","CC 97 - Portones","CC 99 - Punta Carretas"];
+const PASSWORD = 'mante2026';
+
+let machines = [];
+let selectedLocal = null;
+
+// Authentication
+document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const pass = document.getElementById('passwordInput').value;
+    if (pass === PASSWORD) {
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+        init();
+    } else {
+        alert('Contraseña incorrecta');
+        document.getElementById('passwordInput').value = '';
+    }
+});
+
+function init() {
+    populateLocals();
+    listenToMachines();
+    setupEventListeners();
+}
+
+function populateLocals() {
+    const localesList = document.getElementById('localesList');
+    const formLocal = document.getElementById('formLocal');
+    
+    localesList.innerHTML = LOCALES.map(local => 
+        `<button type="button" class="local-btn w-full text-left px-4 py-3 rounded-lg border-2 border-slate-200 hover:border-indigo-500 transition" data-local="${local}">
+            <i class="fa-solid fa-location-dot mr-2 text-indigo-600"></i>${local}
+        </button>`
+    ).join('');
+    
+    LOCALES.forEach(local => {
+        formLocal.add(new Option(local, local));
+    });
+    
+    document.querySelectorAll('.local-btn').forEach(btn => {
+        btn.addEventListener('click', () => selectLocal(btn.dataset.local));
+    });
+}
+
+function selectLocal(local) {
+    selectedLocal = local;
+    document.querySelectorAll('.local-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`[data-local="${local}"]`).classList.add('active');
+    document.getElementById('tableTitle').textContent = `Máquinas - ${local}`;
+    renderMachines();
+}
+
+function listenToMachines() {
+    const q = query(machinesCollection, orderBy('createdAt', 'desc'));
+    onSnapshot(q, (snapshot) => {
+        machines = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        renderMachines();
+    });
+}
+
+function setupEventListeners() {
+    document.getElementById('machineForm').addEventListener('submit', handleAddMachine);
+    document.getElementById('exportBtn').addEventListener('click', exportToCSV);
+    document.getElementById('importBtn').addEventListener('click', () => document.getElementById('fileInput').click());
+    document.getElementById('fileInput').addEventListener('change', handleImportCSV);
+}
+
+async function handleAddMachine(e) {
+    e.preventDefault();
+    const local = document.getElementById('formLocal').value;
+    const maquina = document.getElementById('formMaquina').value;
+    const marca = document.getElementById('formMarca').value;
+    const numero = document.getElementById('formNumero').value;
+    const nota = document.getElementById('formNota').value;
+
+    if (!local) {
+        alert('Selecciona un local');
+        return;
+    }
+
+    const newMachine = {
+        local,
+        maquina,
+        marca,
+        numero,
+        nota,
+        createdAt: Date.now()
+    };
+
+    await addDoc(machinesCollection, newMachine);
+    document.getElementById('machineForm').reset();
+    alert('Máquina agregada correctamente');
+}
+
+function renderMachines() {
+    const tbody = document.getElementById('machinesTableBody');
+    
+    if (!selectedLocal) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-slate-500 py-8">Selecciona un local</td></tr>';
+        return;
+    }
+
+    const filteredMachines = machines.filter(m => m.local === selectedLocal);
+
+    if (filteredMachines.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-slate-500 py-8">No hay máquinas registradas</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = filteredMachines.map(machine => `
+        <tr>
+            <td><strong>${machine.maquina}</strong></td>
+            <td>${machine.marca}</td>
+            <td>${machine.numero}</td>
+            <td>${machine.nota || '-'}</td>
+            <td>
+                <button class="text-red-600 hover:text-red-800 transition" onclick="deleteMachine('${machine.id}')">
+                    <i class="fa-solid fa-trash text-sm"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+window.deleteMachine = async function(id) {
+    if (confirm('¿Eliminar esta máquina?')) {
+        await deleteDoc(doc(db, 'maquinas', id));
+    }
+};
+
+function exportToCSV() {
+    if (!selectedLocal) {
+        alert('Selecciona un local para exportar');
+        return;
+    }
+
+    const filteredMachines = machines.filter(m => m.local === selectedLocal);
+    const headers = ['Máquina', 'Marca', 'Número', 'Nota'];
+    let csv = headers.join(',') + '\n';
+    
+    filteredMachines.forEach(machine => {
+        csv += [machine.maquina, machine.marca, machine.numero, machine.nota || ''].map(v => `"${v}"`).join(',') + '\n';
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `inventario_${selectedLocal.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.click();
+}
+
+function handleImportCSV(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!selectedLocal) {
+        alert('Selecciona un local antes de importar');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+        const csv = event.target.result;
+        const lines = csv.split('\n').filter(line => line.trim());
+        
+        if (lines.length < 2) {
+            alert('El archivo está vacío');
+            return;
+        }
+
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
+        const batch = writeBatch(db);
+        let count = 0;
+
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+            
+            if (values.length >= 3 && values[0]) {
+                const docRef = doc(machinesCollection);
+                batch.set(docRef, {
+                    local: selectedLocal,
+                    maquina: values[0],
+                    marca: values[1],
+                    numero: values[2],
+                    nota: values[3] || '',
+                    createdAt: Date.now()
+                });
+                count++;
+            }
+        }
+
+        await batch.commit();
+        alert(`${count} máquinas importadas correctamente`);
+        document.getElementById('fileInput').value = '';
+    };
+
+    reader.readAsText(file);
+}
+
+    </script>
+</body>
+</html>
