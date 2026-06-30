@@ -261,10 +261,10 @@ function setupEventListeners() {
     document.getElementById('filterCategoria').addEventListener('change', applyFilters);
     document.getElementById('resetFilters').addEventListener('click', resetFilters);
     document.getElementById('exportData').addEventListener('click', exportToCSV);
+    document.getElementById('inventoryBtn').addEventListener('click', () => alert('Módulo de Inventario - próximamente'));
     document.getElementById('tabPendientes').addEventListener('click', () => switchTab('Pendiente'));
     document.getElementById('tabCompletadas').addEventListener('click', () => switchTab('Completado'));
-    document.getElementById('taskFecha').value = new Date().toISOString().split('T')[0];
-    document.getElementById('inventoryBtn').addEventListener('click', () => alert('Módulo de Inventario - próximamente'));
+    document.getElementById('taskFecha').value = new Date().toISOString().split('T')[0];    
 }
 
 function switchTab(tab) {
