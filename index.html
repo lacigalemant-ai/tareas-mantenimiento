@@ -264,6 +264,7 @@ function setupEventListeners() {
     document.getElementById('tabPendientes').addEventListener('click', () => switchTab('Pendiente'));
     document.getElementById('tabCompletadas').addEventListener('click', () => switchTab('Completado'));
     document.getElementById('taskFecha').value = new Date().toISOString().split('T')[0];
+    document.getElementById('inventoryBtn').addEventListener('click', () => alert('Módulo de Inventario - próximamente'));
 }
 
 function switchTab(tab) {
