@@ -38,8 +38,8 @@
                     <button id="addTaskBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg">
                         <i class="fa-solid fa-plus mr-2"></i>Nueva Tarea
                     </button>
-                         <button id="inventoryBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg">
-                    <i class="fa-solid fa-boxes-stacked mr-2"></i>Inventario
+                    <button id="inventoryBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg">
+                        <i class="fa-solid fa-boxes-stacked mr-2"></i>Inventario
                     </button>
                     <button id="exportData" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg">
                         <i class="fa-solid fa-file-csv mr-2"></i>Exportar
@@ -137,9 +137,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Local *</label>
-                        <select id="taskLocal" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                            <option value="">Seleccionar local</option>
-                        </select>
+                        <select id="taskLocal" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"></select>
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Prioridad *</label>
@@ -174,7 +172,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-2">Comentarios</label>
-                    <textarea id="taskComentarios" rows="3" placeholder="Detalles adicionales..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"></textarea>
+                    <textarea id="taskComentarios" rows="3" placeholder="Detalles adicionales..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition resize-none"></textarea>
                 </div>
                 <div class="flex gap-3 pt-4">
                     <button type="button" id="cancelTask" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 py-3 rounded-xl font-semibold transition">Cancelar</button>
@@ -207,7 +205,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const tasksCollection = collection(db, 'tareas');
 
-const LOCALES = ["CC 10 - Cordón","CC 20 - Pocitos","CC 50 - Intendencia","CC 70 - Garibaldi","CC 80 - Munoz","CC 89 - Montevideo Shopping","CC 95 - Atlántida","CC 97 - Portones","CC 99 - Punta del Este","CC 120 - Nuevo Centro"];
+const LOCALES = ["CC 10 - Cordón","CC 20 - Pocitos","CC 50 - Intendencia","CC 70 - Garibaldi","CC 80 - Munoz","CC 89 - Montevideo Shopping","CC 95 - Atlántida","CC 97 - Portones","CC 99 - Pta. Carretas A","CC 101 - Tres Cruces A","CC 107 - Peatonal","CC 109 - Rodelú","CC 111 - Malvin","CC 113 - Pta. Carretas B","CC 120 - Nuevo Centro","CC 121 - Las Piedras","CC 150 - Fabrica","CC 910 - Ocean. Benito B","CC 920 - Sorocabana","CC 950/800 - Deposito/FNC"];
 
 const TASKS_DATA = [];
 
@@ -241,10 +239,10 @@ function listenToTasks() {
             initializeDatabase();
             return;
         }
-        // GUARDAMOS EL ID REAL DE FIRESTORE
+        // GUARDAR EL ID REAL DE FIRESTORE
         tasks = snapshot.docs.map(doc => ({
             docId: doc.id,
-           ...doc.data()
+            ...doc.data()
         }));
         applyFilters();
         updateStats();
@@ -259,9 +257,10 @@ function populateLocalDropdowns() {
         taskLocal.add(new Option(local, local));
     });
 }
-    
+        
 function setupEventListeners() {
     document.getElementById('addTaskBtn').addEventListener('click', openModal);
+    document.getElementById('inventoryBtn').addEventListener('click', () => window.location.href = 'inventario.html');
     document.getElementById('closeModal').addEventListener('click', closeModal);
     document.getElementById('cancelTask').addEventListener('click', closeModal);
     document.getElementById('taskForm').addEventListener('submit', handleAddTask);
@@ -269,96 +268,53 @@ function setupEventListeners() {
     document.getElementById('filterPrioridad').addEventListener('change', applyFilters);
     document.getElementById('filterCategoria').addEventListener('change', applyFilters);
     document.getElementById('resetFilters').addEventListener('click', resetFilters);
-    document.getElementById('exportData').addEventListener('click', exportToCSV);
-    document.getElementById('inventoryBtn').addEventListener('click', () => window.location.href = 'inventario.html');
     document.getElementById('tabPendientes').addEventListener('click', () => switchTab('Pendiente'));
-    document.getElementById('tabCompletadas').addEventListener('click', () => switchTab('Completado'));
-    document.getElementById('taskFecha').value = new Date().toISOString().split('T')[0];    
+    document.getElementById('tabCompletadas').addEventListener('click', () => switchTab('Completada'));
+    document.getElementById('exportData').addEventListener('click', exportToCSV);
 }
 
-function switchTab(tab) {
-    currentTab = tab;
-    const tabPendientes = document.getElementById('tabPendientes');
-    const tabCompletadas = document.getElementById('tabCompletadas');
-    if (tab === 'Pendiente') {
-        tabPendientes.classList.replace('tab-inactive','tab-active');
-        tabCompletadas.classList.replace('tab-active','tab-inactive');
-    } else {
-        tabCompletadas.classList.replace('tab-inactive','tab-active');
-        tabPendientes.classList.replace('tab-active','tab-inactive');
-    }
-    applyFilters();
+function openModal() {
+    document.getElementById('taskModal').classList.remove('hidden');
 }
 
-function openModal() { document.getElementById('taskModal').classList.remove('hidden'); }
 function closeModal() {
     document.getElementById('taskModal').classList.add('hidden');
     document.getElementById('taskForm').reset();
-    document.getElementById('taskFecha').value = new Date().toISOString().split('T')[0];
 }
+
 async function handleAddTask(e) {
     e.preventDefault();
-    const btn = document.getElementById('saveTaskBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Guardando...';
-
-    const newTask = {
+    const task = {
         local: document.getElementById('taskLocal').value,
-        prioridad: document.getElementById('taskPrioridad').value,
         tarea: document.getElementById('taskTarea').value,
+        prioridad: document.getElementById('taskPrioridad').value,
         categoría: document.getElementById('taskCategoria').value,
         fecha_ingreso: document.getElementById('taskFecha').value,
-        comentarios: document.getElementById('taskComentarios').value,
         estado: 'Pendiente',
+        comentarios: document.getElementById('taskComentarios').value,
         nota_cierre: '',
         fecha_cierre: '',
         createdAt: Date.now()
     };
-
-    await addDoc(tasksCollection, newTask);
+    
+    await addDoc(tasksCollection, task);
     closeModal();
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i>Guardar';
 }
 
 function applyFilters() {
-    const filterLocal = document.getElementById('filterLocal').value;
-    const filterPrioridad = document.getElementById('filterPrioridad').value;
-    const filterCategoria = document.getElementById('filterCategoria').value;
+    const localFilter = document.getElementById('filterLocal').value;
+    const prioridadFilter = document.getElementById('filterPrioridad').value;
+    const categoriaFilter = document.getElementById('filterCategoria').value;
 
     filteredTasks = tasks.filter(task => {
-        const matchEstado = task.estado === currentTab && task.estado !== 'Eliminado';
-        const matchLocal = filterLocal === 'all' || task.local === filterLocal;
-        const matchPrioridad = filterPrioridad === 'all' || task.prioridad === filterPrioridad;
-        const matchCategoria = filterCategoria === 'all' || task.categoría === filterCategoria;
-        return matchEstado && matchLocal && matchPrioridad && matchCategoria;
+        if (task.estado !== currentTab) return false;
+        if (localFilter !== 'all' && task.local !== localFilter) return false;
+        if (prioridadFilter !== 'all' && task.prioridad !== prioridadFilter) return false;
+        if (categoriaFilter !== 'all' && task.categoría !== categoriaFilter) return false;
+        return true;
     });
 
     renderTasks();
-}
-
-function resetFilters() {
-    document.getElementById('filterLocal').value = 'all';
-    document.getElementById('filterPrioridad').value = 'all';
-    document.getElementById('filterCategoria').value = 'all';
-    applyFilters();
-}
-
-function updateStats() {
-    // ARREGLADO: Excluir tareas eliminadas del conteo
-    const validTasks = tasks.filter(t => t.estado !== 'Eliminado');
-    const total = validTasks.length;
-    const completed = validTasks.filter(t => t.estado === 'Completado').length;
-    const pending = total - completed;
-    const percent = total > 0? Math.round((completed / total) * 100) : 0;
-
-    document.getElementById('totalCount').textContent = total;
-    document.getElementById('completedCount').textContent = completed;
-    document.getElementById('pendingCount').textContent = pending;
-    document.getElementById('progressPercent').textContent = percent + '%';
-    document.getElementById('progressBar').style.width = percent + '%';
-
-    document.querySelectorAll('.loading').forEach(el => el.classList.remove('loading'));
 }
 
 function renderTasks() {
@@ -372,140 +328,99 @@ function renderTasks() {
     }
 
     emptyState.classList.add('hidden');
-    container.innerHTML = filteredTasks.map(task => createTaskCard(task)).join('');
-
-    filteredTasks.forEach(task => {
-        const checkbox = document.getElementById(`check-${task.docId}`);
-        const deleteBtn = document.getElementById(`delete-${task.docId}`);
-        const noteInput = document.getElementById(`note-${task.docId}`);
-
-        if (checkbox) checkbox.addEventListener('change', () => toggleTask(task.docId));
-        if (deleteBtn) deleteBtn.addEventListener('click', () => deleteTask(task.docId));
-        if (noteInput) noteInput.addEventListener('change', (e) => updateNote(task.docId, e.target.value));
-    });
-}
-
-function createTaskCard(task) {
-    const isCompleted = task.estado === 'Completado';
-    const priorityClass = task.prioridad === 'Alta'? 'priority-alta' : task.prioridad === 'Media'? 'priority-media' : 'priority-baja';
-    const priorityIcon = task.prioridad === 'Alta'? 'fa-exclamation' : task.prioridad === 'Media'? 'fa-minus' : 'fa-arrow-down';
-
-    return `
-        <div class="task-card bg-white rounded-xl shadow-md p-5 border border-slate-200 ${isCompleted? 'completed' : ''}">
-            <div class="flex items-start gap-4">
-                <input type="checkbox" id="check-${task.docId}" ${isCompleted? 'checked' : ''} class="mt-1 w-5 h-5 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+    container.innerHTML = filteredTasks.map(task => `
+        <div class="bg-white rounded-2xl shadow-lg p-6 task-card ${task.estado === 'Completada' ? 'completed' : ''}">
+            <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
-                    <div class="flex items-start justify-between gap-4 mb-3">
-                        <h3 class="task-title text-lg font-semibold text-slate-800 flex-1">${task.tarea}</h3>
-                        <button id="delete-${task.docId}" class="text-slate-400 hover:text-red-600 transition">
-                            <i class="fa-solid fa-trash text-sm"></i>
-                        </button>
+                    <div class="flex items-center gap-3 mb-2">
+                        <input type="checkbox" id="check-${task.docId}" class="w-5 h-5 cursor-pointer" ${task.estado === 'Completada' ? 'checked' : ''} onchange="toggleTask('${task.docId}')">
+                        <span class="priority-${task.prioridad?.toLowerCase()} text-white text-xs px-3 py-1 rounded-full font-semibold">${task.prioridad}</span>
+                        <span class="text-slate-500 text-sm">${task.categoría}</span>
                     </div>
-                    <div class="flex flex-wrap gap-2 mb-3">
-                        <span class="px-3 py-1 ${priorityClass} text-white text-xs font-semibold rounded-full">
-                            <i class="fa-solid ${priorityIcon} mr-1"></i>${task.prioridad}
-                        </span>
-                        <span class="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-full">
-                            <i class="fa-solid fa-tag mr-1"></i>${task.categoría}
-                        </span>
-                        <span class="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-full">
-                            <i class="fa-solid fa-location-dot mr-1"></i>${task.local}
-                        </span>
-                        <span class="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-full">
-                            <i class="fa-solid fa-calendar mr-1"></i>${task.fecha_ingreso}
-                        </span>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2 task-title">${task.tarea}</h3>
+                    <div class="text-slate-600 text-sm space-y-1">
+                        <p><i class="fa-solid fa-building mr-2 text-indigo-600"></i>${task.local}</p>
+                        <p><i class="fa-solid fa-calendar mr-2 text-indigo-600"></i>${task.fecha_ingreso}</p>
+                        ${task.comentarios ? `<p class="text-slate-700"><i class="fa-solid fa-note-sticky mr-2 text-indigo-600"></i>${task.comentarios}</p>` : ''}
                     </div>
-                    ${task.comentarios? `<p class="text-sm text-slate-600 mb-3"><i class="fa-solid fa-comment-dots text-slate-400 mr-2"></i>${task.comentarios}</p>` : ''}
-                    ${isCompleted? `
-                        <div class="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-                            <label class="block text-xs font-semibold text-emerald-700 mb-1">Nota de cierre:</label>
-                            <input type="text" id="note-${task.docId}" value="${task.nota_cierre || ''}" placeholder="Ej: Reparado el 18/06 por Juan" class="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
-                            ${task.fecha_cierre? `<p class="text-xs text-emerald-600 mt-2"><i class="fa-solid fa-check mr-1"></i>Cerrado: ${task.fecha_cierre}</p>` : ''}
-                        </div>
-                    ` : ''}
                 </div>
+                <button class="text-red-600 hover:text-red-800 transition p-2" onclick="deleteTask('${task.docId}')">
+                    <i class="fa-solid fa-trash text-lg"></i>
+                </button>
             </div>
         </div>
-    `;
+    `).join('');
 }
 
-async function toggleTask(docId) {
-    try {
-        const task = tasks.find(t => t.docId === docId);
-        if (!task || !task.docId) {
-            console.error('No se encontró la tarea o falta docId:', task);
-            return;
-        }
-
-        const newEstado = task.estado === 'Pendiente'? 'Completado' : 'Pendiente';
-        const updateData = { estado: newEstado };
-
-        if (newEstado === 'Completado') {
-            updateData.fecha_cierre = new Date().toISOString().split('T')[0];
-        } else {
-            updateData.fecha_cierre = '';
-            updateData.nota_cierre = '';
-        }
-
-        console.log('Actualizando docId:', task.docId, updateData);
-        await updateDoc(doc(db, 'tareas', task.docId), updateData);
-        console.log('Tarea actualizada OK');
-
-    } catch (error) {
-        console.error('Error al actualizar tarea:', error);
-        alert('Error al marcar la tarea. Revisá la consola F12');
+window.toggleTask = async function(docId) {
+    const task = tasks.find(t => t.docId === docId);
+    if (task) {
+        await updateDoc(doc(db, 'tareas', docId), {
+            estado: task.estado === 'Pendiente' ? 'Completada' : 'Pendiente'
+        });
     }
-}
-async function updateNote(docId, note) {
-    try {
-        const task = tasks.find(t => t.docId === docId);
-        if (!task || !task.docId) return;
-        await updateDoc(doc(db, 'tareas', task.docId), { nota_cierre: note });
-        console.log('Nota actualizada');
-    } catch (error) {
-        console.error('Error al actualizar nota:', error);
+};
+
+window.deleteTask = async function(docId) {
+    if (confirm('¿Eliminar esta tarea?')) {
+        await updateDoc(doc(db, 'tareas', docId), {
+            estado: 'Eliminado'
+        });
+        document.getElementById('deleteNotification').classList.remove('hidden');
+        setTimeout(() => document.getElementById('deleteNotification').classList.add('hidden'), 3000);
     }
+};
+
+function updateStats() {
+    const validTasks = tasks.filter(t => t.estado !== 'Eliminado');
+    const completed = validTasks.filter(t => t.estado === 'Completada').length;
+    const pending = validTasks.filter(t => t.estado === 'Pendiente').length;
+    const total = validTasks.length;
+    const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+    document.getElementById('totalCount').textContent = total;
+    document.getElementById('completedCount').textContent = completed;
+    document.getElementById('pendingCount').textContent = pending;
+    document.getElementById('progressPercent').textContent = progress + '%';
+    document.getElementById('progressBar').style.width = progress + '%';
 }
 
-async function deleteTask(docId) {
-    try {
-        const task = tasks.find(t => t.docId === docId);
-        if (!task || !task.docId) return;
-        if (confirm('¿Eliminar esta tarea? Esta acción no se puede deshacer.')) {
-            await updateDoc(doc(db, 'tareas', task.docId), { estado: 'Eliminado' });
-            console.log('Tarea eliminada');
-            showDeleteNotification();
-        }
-    } catch (error) {
-        console.error('Error al eliminar tarea:', error);
-        alert('Error al eliminar. Revisá la consola F12');
-    }
+function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('tabPendientes').classList.toggle('tab-active', tab === 'Pendiente');
+    document.getElementById('tabPendientes').classList.toggle('tab-inactive', tab !== 'Pendiente');
+    document.getElementById('tabCompletadas').classList.toggle('tab-active', tab === 'Completada');
+    document.getElementById('tabCompletadas').classList.toggle('tab-inactive', tab !== 'Completada');
+    applyFilters();
 }
 
-function showDeleteNotification() {
-    const notification = document.getElementById('deleteNotification');
-    notification.classList.remove('hidden');
-    setTimeout(() => {
-        notification.classList.add('hidden');
-    }, 3000);
+function resetFilters() {
+    document.getElementById('filterLocal').value = 'all';
+    document.getElementById('filterPrioridad').value = 'all';
+    document.getElementById('filterCategoria').value = 'all';
+    applyFilters();
 }
 
 function exportToCSV() {
-    const headers = ['Local','Tarea','Categoría','Prioridad','Fecha Ingreso','Estado','Comentarios','Nota Cierre','Fecha Cierre'];
-    const rows = tasks.filter(t => t.estado !== 'Eliminado').map(t => [t.local, t.tarea, t.categoría, t.prioridad, t.fecha_ingreso, t.estado, t.comentarios || '', t.nota_cierre || '', t.fecha_cierre || '']);
-    let csv = headers.join(',') + '\n';
-    rows.forEach(row => {
-        csv += row.map(v => `"${v}"`).join(',') + '\n';
+    if (filteredTasks.length === 0) {
+        alert('No hay tareas para exportar');
+        return;
+    }
+
+    let csv = 'Local,Tarea,Prioridad,Categoría,Fecha Ingreso,Estado,Comentarios\n';
+    filteredTasks.forEach(task => {
+        csv += `"${task.local}","${task.tarea}","${task.prioridad}","${task.categoría}","${task.fecha_ingreso}","${task.estado}","${task.comentarios || ''}"\n`;
     });
-    const blob = new Blob([csv], { type: 'text/csv' });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `tareas_mantenimiento_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
+    link.setAttribute('href', url);
+    link.setAttribute('download', `tareas_${new Date().toISOString().split('T')[0]}.csv`);
+    link.click();
 }
 
 init();
-</script>
+    </script>
 </body>
 </html>
