@@ -137,7 +137,9 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Local *</label>
-                        <select id="taskLocal" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"></select>
+                        <select id="taskLocal" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                            <option value="">Seleccionar local</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Prioridad *</label>
@@ -172,7 +174,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-2">Comentarios</label>
-                    <textarea id="taskComentarios" rows="3" placeholder="Detalles adicionales..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition resize-none"></textarea>
+                    <textarea id="taskComentarios" rows="3" placeholder="Detalles adicionales..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"></textarea>
                 </div>
                 <div class="flex gap-3 pt-4">
                     <button type="button" id="cancelTask" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 py-3 rounded-xl font-semibold transition">Cancelar</button>
@@ -181,6 +183,13 @@
             </form>
         </div>
     </div>
+
+    <!-- Notificación de éxito -->
+    <div id="deleteNotification" class="hidden fixed bottom-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 z-40">
+        <i class="fa-solid fa-check-circle"></i>
+        <span>Tarea eliminada correctamente</span>
+    </div>
+
     <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, query, orderBy, getDocs, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
@@ -198,9 +207,9 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const tasksCollection = collection(db, 'tareas');
 
-const LOCALES = ["CC 10 - Cordón","CC 20 - Pocitos","CC 50 - Intendencia","CC 70 - Garibaldi","CC 80 - Munoz","CC 89 - Montevideo Shopping","CC 95 - Atlántida","CC 97 - Portones","CC 99 - Pta. Carretas A","CC 101 - Tres Cruces A","CC 107 - Peatonal","CC 109 - Rodelú","CC 111 - Malvin","CC 113 - Pta. Carretas B","CC 120 - Nuevo Centro","CC 121 - Las Piedras","CC 150 - Fabrica","CC 910 - Ocean. Benito B","CC 920 - Sorocabana","CC 950/800 - Deposito/FNC"];
+const LOCALES = ["CC 10 - Cordón","CC 20 - Pocitos","CC 50 - Intendencia","CC 70 - Garibaldi","CC 80 - Munoz","CC 89 - Montevideo Shopping","CC 95 - Atlántida","CC 97 - Portones","CC 99 - Punta del Este","CC 120 - Nuevo Centro"];
 
-const TASKS_DATA = [{"id":1,"local":"CC 120 - Nuevo Centro","tarea":"Cambiar canilla de pileta casi rota","categoría":"Plomería","prioridad":"Alta","fecha_ingreso":"2024-01-10","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":2,"local":"CC 120 - Nuevo Centro","tarea":"Reparar cerámica levantada en entrada y atrás del freezer","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-11","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":3,"local":"CC 120 - Nuevo Centro","tarea":"Revisar máquina de chantilly: congela mucho","categoría":"Eléctrica","prioridad":"Alta","fecha_ingreso":"2024-01-12","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":4,"local":"CC 120 - Nuevo Centro","tarea":"Reparar ventilador que no prende","categoría":"Eléctrica","prioridad":"Media","fecha_ingreso":"2024-01-13","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":5,"local":"CC 120 - Nuevo Centro","tarea":"Ajustar estante del microondas, está flojo","categoría":"Carpintería","prioridad":"Baja","fecha_ingreso":"2024-01-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":6,"local":"CC 99 - Pta. Carretas A","tarea":"Freezer de pinitos: pintar puerta","categoría":"Pintura","prioridad":"Baja","fecha_ingreso":"2024-01-08","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":7,"local":"CC 99 - Pta. Carretas A","tarea":"Fabricar mueble para latas de cucuruchos","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-09","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":8,"local":"CC 99 - Pta. Carretas A","tarea":"Subir heladera de la venta","categoría":"General","prioridad":"Alta","fecha_ingreso":"2024-01-10","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":9,"local":"CC 99 - Pta. Carretas A","tarea":"Tacos para bachero del depósito","categoría":"Plomería","prioridad":"Media","fecha_ingreso":"2024-01-11","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":10,"local":"CC 99 - Pta. Carretas A","tarea":"Sillas para tapizar","categoría":"General","prioridad":"Baja","fecha_ingreso":"2024-01-12","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":11,"local":"CC 99 - Pta. Carretas A","tarea":"Vitrina chica: vidrio con pintura que se sale","categoría":"Pintura","prioridad":"Media","fecha_ingreso":"2024-01-13","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":12,"local":"CC 99 - Pta. Carretas A","tarea":"Limpieza paneles condensador: vitrinas, bachero y pinitos","categoría":"Limpieza","prioridad":"Alta","fecha_ingreso":"2024-01-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":13,"local":"CC 113 - Pta. Carretas B","tarea":"Remaches faltantes pasador bachero 3","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-09","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":14,"local":"CC 113 - Pta. Carretas B","tarea":"Sillas para tapizar","categoría":"General","prioridad":"Baja","fecha_ingreso":"2024-01-10","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":15,"local":"CC 113 - Pta. Carretas B","tarea":"Colgar espejo","categoría":"General","prioridad":"Baja","fecha_ingreso":"2024-01-11","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":16,"local":"CC 113 - Pta. Carretas B","tarea":"Ajustar estantería","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-12","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":17,"local":"CC 113 - Pta. Carretas B","tarea":"Extractor para depósito","categoría":"Eléctrica","prioridad":"Alta","fecha_ingreso":"2024-01-13","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":18,"local":"CC 113 - Pta. Carretas B","tarea":"Limpieza paneles condensador: vitrinas, bachero y pinitos","categoría":"Limpieza","prioridad":"Alta","fecha_ingreso":"2024-01-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":19,"local":"CC 113 - Pta. Carretas B","tarea":"Retirar tacho de pintura del depósito","categoría":"General","prioridad":"Baja","fecha_ingreso":"2024-01-15","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":20,"local":"CC 99 - Pta. Carretas A","tarea":"Instalar lockers","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-15","estado":"Pendiente","comentarios":"Compartido con Carretas B","nota_cierre":"","fecha_cierre":""},{"id":21,"local":"CC 111 - Malvin","tarea":"Pintar mostrador (Caja)","categoría":"Pintura","prioridad":"Media","fecha_ingreso":"2024-01-12","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":22,"local":"CC 111 - Malvin","tarea":"Cambiar papel que cubre pared venta (Roto)","categoría":"General","prioridad":"Baja","fecha_ingreso":"2024-01-13","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":23,"local":"CC 111 - Malvin","tarea":"Reparar pileta venta: picada y muy oxidada","categoría":"Plomería","prioridad":"Alta","fecha_ingreso":"2024-01-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":24,"local":"CC 111 - Malvin","tarea":"Reparar cerradura puerta costado: cuesta para trancar","categoría":"Carpintería","prioridad":"Alta","fecha_ingreso":"2024-01-15","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":25,"local":"CC 111 - Malvin","tarea":"Reparar estante caja (Roto)","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-16","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":26,"local":"CC 101 - Tres Cruces A","tarea":"Cerrar puerta de caja de luz (sector caja)","categoría":"Eléctrica","prioridad":"Alta","fecha_ingreso":"2024-01-03","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":27,"local":"CC 101 - Tres Cruces A","tarea":"Reparar bachero N°4: sensor de la puerta","categoría":"Eléctrica","prioridad":"Alta","fecha_ingreso":"2024-01-04","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":28,"local":"CC 101 - Tres Cruces A","tarea":"Pintar y arreglar estantes de repisa depósito: poner cinta porque tienen mucho filo y lastima","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-05","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":29,"local":"CC 101 - Tres Cruces A","tarea":"Mesada de venta: tiene abertura y se cae el agua para el mueble","categoría":"Carpintería","prioridad":"Alta","fecha_ingreso":"2024-01-06","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":30,"local":"CC 101 - Tres Cruces A","tarea":"Mueble de venta: poner algo atrás porque se caen las cosas","categoría":"Carpintería","prioridad":"Baja","fecha_ingreso":"2024-01-07","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":31,"local":"CC 101 - Tres Cruces A","tarea":"Mesada de venta: poner zócalo para que no caiga agua","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-08","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":32,"local":"CC 101 - Tres Cruces A","tarea":"Baldosas de venta están rotas","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-09","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":33,"local":"CC 101 - Tres Cruces A","tarea":"Piso del entrepiso está levantado: está en desnivel","categoría":"Carpintería","prioridad":"Alta","fecha_ingreso":"2024-01-10","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":34,"local":"CC 101 - Tres Cruces A","tarea":"Llevar los cuencos para el depósito: pinitos y pirolo 2 kg","categoría":"General","prioridad":"Baja","fecha_ingreso":"2024-01-11","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":35,"local":"CC 101 - Tres Cruces A","tarea":"Dispensador para jabón pileta venta: no de pared","categoría":"General","prioridad":"Baja","fecha_ingreso":"2024-01-12","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":36,"local":"CC 101 - Tres Cruces A","tarea":"Repisa debajo de la escalera: alargar la tabla","categoría":"Carpintería","prioridad":"Baja","fecha_ingreso":"2024-01-13","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":37,"local":"CC 101 - Tres Cruces A","tarea":"Limpieza de pantallas: están muy sucias","categoría":"Limpieza","prioridad":"Media","fecha_ingreso":"2024-01-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":38,"local":"CC 101 - Tres Cruces A","tarea":"Limpieza de extractores","categoría":"Limpieza","prioridad":"Media","fecha_ingreso":"2024-01-15","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":39,"local":"CC 101 - Tres Cruces A","tarea":"Limpieza de motores de bacheros","categoría":"Limpieza","prioridad":"Alta","fecha_ingreso":"2024-01-16","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":40,"local":"CC 101 - Tres Cruces A","tarea":"Enchufe para instalación de cámaras y wifi","categoría":"Eléctrica","prioridad":"Alta","fecha_ingreso":"2024-01-17","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":41,"local":"CC 101 - Tres Cruces A","tarea":"Enchufe para bacheros: saltó la llave, cable suelto","categoría":"Eléctrica","prioridad":"Alta","fecha_ingreso":"2024-01-18","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":42,"local":"CC 101 - Tres Cruces A","tarea":"Revisar heladera de granita: tiene agua, se lava y enseguida queda con agua","categoría":"Plomería","prioridad":"Media","fecha_ingreso":"2024-01-19","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":43,"local":"CC 101 - Tres Cruces A","tarea":"Instalar ventilador para depósito y vestuario","categoría":"Eléctrica","prioridad":"Media","fecha_ingreso":"2024-01-20","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":44,"local":"CC 101 - Tres Cruces A","tarea":"Reparar protector de motor de hoyos: tiene el tejido alambre suelto","categoría":"General","prioridad":"Alta","fecha_ingreso":"2024-01-21","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":45,"local":"CC 101 - Tres Cruces A","tarea":"4 casilleros rotos: 3 cerradura rota y 1 puerta","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2024-01-22","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":46,"local":"CC 101 - Tres Cruces A","tarea":"Colocar protector a los 2 tubos de luz de cocina","categoría":"Eléctrica","prioridad":"Alta","fecha_ingreso":"2024-01-23","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":47,"local":"CC 101 - Tres Cruces A","tarea":"Revisar timbre: a veces no suena y cuando suena es muy bajo","categoría":"Eléctrica","prioridad":"Baja","fecha_ingreso":"2024-01-24","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":48,"local":"CC 121 - Las Piedras","tarea":"Freezer tapas de fondo pintar","categoría":"Pintura","prioridad":"Media","fecha_ingreso":"2026-06-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":49,"local":"CC 121 - Las Piedras","tarea":"Paredes venta pintar","categoría":"Pintura","prioridad":"Media","fecha_ingreso":"2026-06-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":50,"local":"CC 121 - Las Piedras","tarea":"Estanterías fondo pintar","categoría":"Pintura","prioridad":"Media","fecha_ingreso":"2026-06-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":51,"local":"CC 121 - Las Piedras","tarea":"1 papelera para fondo","categoría":"General","prioridad":"Baja","fecha_ingreso":"2026-06-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":52,"local":"CC 121 - Las Piedras","tarea":"Luz venta 2 bombitas","categoría":"Eléctrica","prioridad":"Alta","fecha_ingreso":"2026-06-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":53,"local":"CC 121 - Las Piedras","tarea":"Patitas heladera venta","categoría":"Refrigeración","prioridad":"Media","fecha_ingreso":"2026-06-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":54,"local":"CC 121 - Las Piedras","tarea":"Mesa fondo arreglar floja","categoría":"Carpintería","prioridad":"Media","fecha_ingreso":"2026-06-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""},{"id":55,"local":"CC 121 - Las Piedras","tarea":"Revisar WC fondo","categoría":"General","prioridad":"Media","fecha_ingreso":"2026-06-14","estado":"Pendiente","comentarios":"","nota_cierre":"","fecha_cierre":""}];
+const TASKS_DATA = [];
 
 let tasks = [];
 let filteredTasks = [];
@@ -232,7 +241,7 @@ function listenToTasks() {
             initializeDatabase();
             return;
         }
-        // ESTA ES LA LÍNEA CLAVE - GUARDAMOS EL ID REAL DE FIRESTORE
+        // GUARDAMOS EL ID REAL DE FIRESTORE
         tasks = snapshot.docs.map(doc => ({
             docId: doc.id,
            ...doc.data()
@@ -250,7 +259,7 @@ function populateLocalDropdowns() {
         taskLocal.add(new Option(local, local));
     });
 }
-        
+    
 function setupEventListeners() {
     document.getElementById('addTaskBtn').addEventListener('click', openModal);
     document.getElementById('closeModal').addEventListener('click', closeModal);
@@ -261,7 +270,7 @@ function setupEventListeners() {
     document.getElementById('filterCategoria').addEventListener('change', applyFilters);
     document.getElementById('resetFilters').addEventListener('click', resetFilters);
     document.getElementById('exportData').addEventListener('click', exportToCSV);
-    document.getElementById('inventoryBtn').addEventListener('click', () => alert('Módulo de Inventario - próximamente'));
+    document.getElementById('inventoryBtn').addEventListener('click', () => window.location.href = 'inventario.html');
     document.getElementById('tabPendientes').addEventListener('click', () => switchTab('Pendiente'));
     document.getElementById('tabCompletadas').addEventListener('click', () => switchTab('Completado'));
     document.getElementById('taskFecha').value = new Date().toISOString().split('T')[0];    
@@ -318,7 +327,7 @@ function applyFilters() {
     const filterCategoria = document.getElementById('filterCategoria').value;
 
     filteredTasks = tasks.filter(task => {
-        const matchEstado = task.estado === currentTab && task.estado!== 'Eliminado';
+        const matchEstado = task.estado === currentTab && task.estado !== 'Eliminado';
         const matchLocal = filterLocal === 'all' || task.local === filterLocal;
         const matchPrioridad = filterPrioridad === 'all' || task.prioridad === filterPrioridad;
         const matchCategoria = filterCategoria === 'all' || task.categoría === filterCategoria;
@@ -336,8 +345,10 @@ function resetFilters() {
 }
 
 function updateStats() {
-    const total = tasks.length;
-    const completed = tasks.filter(t => t.estado === 'Completado').length;
+    // ARREGLADO: Excluir tareas eliminadas del conteo
+    const validTasks = tasks.filter(t => t.estado !== 'Eliminado');
+    const total = validTasks.length;
+    const completed = validTasks.filter(t => t.estado === 'Completado').length;
     const pending = total - completed;
     const percent = total > 0? Math.round((completed / total) * 100) : 0;
 
@@ -364,13 +375,13 @@ function renderTasks() {
     container.innerHTML = filteredTasks.map(task => createTaskCard(task)).join('');
 
     filteredTasks.forEach(task => {
-        const checkbox = document.getElementById(`check-${task.id}`);
-        const deleteBtn = document.getElementById(`delete-${task.id}`);
-        const noteInput = document.getElementById(`note-${task.id}`);
+        const checkbox = document.getElementById(`check-${task.docId}`);
+        const deleteBtn = document.getElementById(`delete-${task.docId}`);
+        const noteInput = document.getElementById(`note-${task.docId}`);
 
-        if (checkbox) checkbox.addEventListener('change', () => toggleTask(task.id));
-        if (deleteBtn) deleteBtn.addEventListener('click', () => deleteTask(task.id));
-        if (noteInput) noteInput.addEventListener('change', (e) => updateNote(task.id, e.target.value));
+        if (checkbox) checkbox.addEventListener('change', () => toggleTask(task.docId));
+        if (deleteBtn) deleteBtn.addEventListener('click', () => deleteTask(task.docId));
+        if (noteInput) noteInput.addEventListener('change', (e) => updateNote(task.docId, e.target.value));
     });
 }
 
@@ -382,11 +393,11 @@ function createTaskCard(task) {
     return `
         <div class="task-card bg-white rounded-xl shadow-md p-5 border border-slate-200 ${isCompleted? 'completed' : ''}">
             <div class="flex items-start gap-4">
-                <input type="checkbox" id="check-${task.id}" ${isCompleted? 'checked' : ''} class="mt-1 w-5 h-5 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+                <input type="checkbox" id="check-${task.docId}" ${isCompleted? 'checked' : ''} class="mt-1 w-5 h-5 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500 cursor-pointer">
                 <div class="flex-1">
                     <div class="flex items-start justify-between gap-4 mb-3">
                         <h3 class="task-title text-lg font-semibold text-slate-800 flex-1">${task.tarea}</h3>
-                        <button id="delete-${task.id}" class="text-slate-400 hover:text-red-600 transition">
+                        <button id="delete-${task.docId}" class="text-slate-400 hover:text-red-600 transition">
                             <i class="fa-solid fa-trash text-sm"></i>
                         </button>
                     </div>
@@ -408,7 +419,7 @@ function createTaskCard(task) {
                     ${isCompleted? `
                         <div class="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
                             <label class="block text-xs font-semibold text-emerald-700 mb-1">Nota de cierre:</label>
-                            <input type="text" id="note-${task.id}" value="${task.nota_cierre || ''}" placeholder="Ej: Reparado el 18/06 por Juan" class="w-full px-3 py-2 bg-white border border-emerald-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                            <input type="text" id="note-${task.docId}" value="${task.nota_cierre || ''}" placeholder="Ej: Reparado el 18/06 por Juan" class="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
                             ${task.fecha_cierre? `<p class="text-xs text-emerald-600 mt-2"><i class="fa-solid fa-check mr-1"></i>Cerrado: ${task.fecha_cierre}</p>` : ''}
                         </div>
                     ` : ''}
@@ -418,10 +429,10 @@ function createTaskCard(task) {
     `;
 }
 
-async function toggleTask(id) {
+async function toggleTask(docId) {
     try {
-        const task = tasks.find(t => t.id === id);
-        if (!task ||!task.docId) {
+        const task = tasks.find(t => t.docId === docId);
+        if (!task || !task.docId) {
             console.error('No se encontró la tarea o falta docId:', task);
             return;
         }
@@ -445,10 +456,10 @@ async function toggleTask(id) {
         alert('Error al marcar la tarea. Revisá la consola F12');
     }
 }
-async function updateNote(id, note) {
+async function updateNote(docId, note) {
     try {
-        const task = tasks.find(t => t.id === id);
-        if (!task ||!task.docId) return;
+        const task = tasks.find(t => t.docId === docId);
+        if (!task || !task.docId) return;
         await updateDoc(doc(db, 'tareas', task.docId), { nota_cierre: note });
         console.log('Nota actualizada');
     } catch (error) {
@@ -456,13 +467,14 @@ async function updateNote(id, note) {
     }
 }
 
-async function deleteTask(id) {
+async function deleteTask(docId) {
     try {
-        const task = tasks.find(t => t.id === id);
-        if (!task ||!task.docId) return;
+        const task = tasks.find(t => t.docId === docId);
+        if (!task || !task.docId) return;
         if (confirm('¿Eliminar esta tarea? Esta acción no se puede deshacer.')) {
             await updateDoc(doc(db, 'tareas', task.docId), { estado: 'Eliminado' });
             console.log('Tarea eliminada');
+            showDeleteNotification();
         }
     } catch (error) {
         console.error('Error al eliminar tarea:', error);
@@ -470,9 +482,17 @@ async function deleteTask(id) {
     }
 }
 
+function showDeleteNotification() {
+    const notification = document.getElementById('deleteNotification');
+    notification.classList.remove('hidden');
+    setTimeout(() => {
+        notification.classList.add('hidden');
+    }, 3000);
+}
+
 function exportToCSV() {
     const headers = ['Local','Tarea','Categoría','Prioridad','Fecha Ingreso','Estado','Comentarios','Nota Cierre','Fecha Cierre'];
-    const rows = tasks.map(t => [t.local, t.tarea, t.categoría, t.prioridad, t.fecha_ingreso, t.estado, t.comentarios || '', t.nota_cierre || '', t.fecha_cierre || '']);
+    const rows = tasks.filter(t => t.estado !== 'Eliminado').map(t => [t.local, t.tarea, t.categoría, t.prioridad, t.fecha_ingreso, t.estado, t.comentarios || '', t.nota_cierre || '', t.fecha_cierre || '']);
     let csv = headers.join(',') + '\n';
     rows.forEach(row => {
         csv += row.map(v => `"${v}"`).join(',') + '\n';

@@ -74,6 +74,9 @@
                     <p class="text-slate-600">Gestión de equipos por local</p>
                 </div>
                 <div class="flex flex-wrap gap-3">
+                    <button id="backBtn" class="bg-slate-600 hover:bg-slate-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg">
+                        <i class="fa-solid fa-arrow-left mr-2"></i>Volver
+                    </button>
                     <button id="exportBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg">
                         <i class="fa-solid fa-file-csv mr-2"></i>Descargar
                     </button>
@@ -181,7 +184,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const machinesCollection = collection(db, 'maquinas');
 
-const LOCALES = ["CC 10 - Cordón","CC 20 - Pocitos","CC 50 - Intendencia","CC 70 - Garibaldi","CC 80 - Munoz","CC 89 - Montevideo Shopping","CC 95 - Atlántida","CC 97 - Portones","CC 99 - Punta del Este","CC 120 - Nuevo Centro","CC 130 - Estación Central"];
+const LOCALES = ["CC 10 - Cordón","CC 20 - Pocitos","CC 50 - Intendencia","CC 70 - Garibaldi","CC 80 - Munoz","CC 89 - Montevideo Shopping","CC 95 - Atlántida","CC 97 - Portones","CC 99 - Punta del Este","CC 120 - Nuevo Centro"];
 const PASSWORD = 'mante2026';
 
 let machines = [];
@@ -247,6 +250,7 @@ function listenToMachines() {
 
 function setupEventListeners() {
     document.getElementById('machineForm').addEventListener('submit', handleAddMachine);
+    document.getElementById('backBtn').addEventListener('click', () => window.location.href = 'index.html');
     document.getElementById('exportBtn').addEventListener('click', exportToCSV);
     document.getElementById('importBtn').addEventListener('click', () => document.getElementById('fileInput').click());
     document.getElementById('fileInput').addEventListener('change', handleImportCSV);
