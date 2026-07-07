@@ -236,7 +236,10 @@ function listenToTasks() {
     onSnapshot(q, (snapshot) => {
         document.getElementById('loadingState').classList.add('hidden');
         if (snapshot.empty) {
-            initializeDatabase();
+           // initializeDatabase();
+            tasks = [];            
+            applyFilters();      
+            updateStats();
             return;
         }
         // GUARDAR EL ID REAL DE FIRESTORE
