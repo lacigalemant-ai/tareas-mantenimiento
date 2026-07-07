@@ -203,7 +203,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const tasksCollection = collection(db, 'tareas');
+const tasksCollection = collection(db, 'tareas_mantenimiento');
 
 const LOCALES = ["CC 10 - Cordón","CC 20 - Pocitos","CC 50 - Intendencia","CC 70 - Garibaldi","CC 80 - Munoz","CC 89 - Montevideo Shopping","CC 95 - Atlántida","CC 97 - Portones","CC 99 - Pta. Carretas A","CC 101 - Tres Cruces A","CC 107 - Peatonal","CC 109 - Rodelú","CC 111 - Malvin","CC 113 - Pta. Carretas B","CC 120 - Nuevo Centro","CC 121 - Las Piedras","CC 150 - Fabrica","CC 910 - Ocean. Benito B","CC 920 - Sorocabana","CC 950/800 - Deposito/FNC"];
 
@@ -394,7 +394,7 @@ function renderTasks() {
 window.toggleTask = async function(docId) {
     const task = tasks.find(t => t.docId === docId);
     if (task) {
-        await updateDoc(doc(db, 'tareas', docId), {
+        await updateDoc(doc(db, 'tareas_mantenimiento', docId), {
             estado: task.estado === 'Pendiente' ? 'Completada' : 'Pendiente'
         });
     }
@@ -402,7 +402,7 @@ window.toggleTask = async function(docId) {
 
 window.deleteTask = async function(docId) {
     if (confirm('¿Eliminar esta tarea?')) {
-        await updateDoc(doc(db, 'tareas', docId), {
+        await updateDoc(doc(db, 'tareas_mantenimiento', docId), {
             estado: 'Eliminado'
         });
         document.getElementById('deleteNotification').classList.remove('hidden');
