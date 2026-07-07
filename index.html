@@ -283,50 +283,89 @@ function closeModal() {
 }
 
 async function handleAddTask(e) {
-    e.preventDefault();
+    e.preventDefault(); [cite: 37]
     const task = {
-        local: document.getElementById('taskLocal').value,
-        tarea: document.getElementById('taskTarea').value,
-        prioridad: document.getElementById('taskPrioridad').value,
-        categoría: document.getElementById('taskCategoria').value,
-        fecha_ingreso: document.getElementById('taskFecha').value,
-        estado: 'Pendiente',
-        comentarios: document.getElementById('taskComentarios').value,
-        nota_cierre: '',
-        fecha_cierre: '',
-        createdAt: Date.now()
+        local: document.getElementById('taskLocal').value, [cite: 38]
+        tarea: document.getElementById('taskTarea').value, [cite: 38]
+        prioridad: document.getElementById('taskPrioridad').value, [cite: 38]
+        categoría: document.getElementById('taskCategoria').value, [cite: 38]
+        fecha_ingreso: document.getElementById('taskFecha').value, [cite: 38]
+        estado: 'Pendiente', [cite: 38]
+        comentarios: document.getElementById('taskComentarios').value, [cite: 38]
+        nota_cierre: '', [cite: 38]
+        fecha_cierre: '', [cite: 38]
+        createdAt: Date.now() [cite: 38]
     };
-    
-    await addDoc(tasksCollection, task);
-    closeModal();
+
+    // FALTABA ESTO: Guardar en Firestore y cerrar la ventana
+    await addDoc(tasksCollection, task); [cite: 27]
+    closeModal(); [cite: 37]
 }
 
 function applyFilters() {
-    const localFilter = document.getElementById('filterLocal').value;
-    const prioridadFilter = document.getElementById('filterPrioridad').value;
-    const categoriaFilter = document.getElementById('filterCategoria').value;
+    const localFilter = document.getElementById('filterLocal').value; [cite: 39]
+    const prioridadFilter = document.getElementById('filterPrioridad').value; [cite: 39]
+    const categoriaFilter = document.getElementById('filterCategoria').value; [cite: 39]
 
     filteredTasks = tasks.filter(task => {
+        // 1. Filtrar por la pestaña activa (Pendiente o Completada)
         if (task.estado !== currentTab) return false;
+
+        // 2. Filtrar por Local
         if (localFilter !== 'all' && task.local !== localFilter) return false;
+
+        // 3. Filtrar por Prioridad
         if (prioridadFilter !== 'all' && task.prioridad !== prioridadFilter) return false;
+
+        // 4. Filtrar por Categoría
         if (categoriaFilter !== 'all' && task.categoría !== categoriaFilter) return false;
+
         return true;
     });
 
+    // IMPORTANTE: Después de filtrar, hay que dibujarlas en la pantalla
     renderTasks();
 }
 
 function renderTasks() {
-    const container = document.getElementById('tasksContainer');
-    const emptyState = document.getElementById('emptyState');
+    const container = document.getElementById('tasksContainer'); [cite: 39]
+    const emptyState = document.getElementById('emptyState'); [cite: 40]
 
+    // Limpiar el contenedor antes de dibujar
+    container.innerHTML = '';
+
+    // Si no hay tareas que coincidan con los filtros, mostrar el mensaje de "No hay tareas"
     if (filteredTasks.length === 0) {
-        container.innerHTML = '';
         emptyState.classList.remove('hidden');
         return;
     }
 
+    // Si hay tareas, ocultar el cartel de vacío
+    emptyState.classList.add('hidden');
+
+    // Dibujar cada tarea
+    filteredTasks.forEach(task => {
+        const taskCard = document.createElement('div');
+        taskCard.className = `task-card ${task.prioridad.toLowerCase()}-priority`; // Ejemplo de clases CSS
+        
+        taskCard.innerHTML = `
+            <div class="task-header">
+                <h3>${task.tarea}</h3>
+                <span class="badge">${task.prioridad}</span>
+            </div>
+            <p><strong>Local:</strong> ${task.local}</p>
+            <p><strong>Categoría:</strong> ${task.categoría}</p>
+            <p>${task.comentarios || 'Sin comentarios'}</p>
+            <div class="task-actions">
+                <button onclick="toggleTask('${task.docId}')">
+                    ${task.estado === 'Pendiente' ? 'Completar' : 'Desmarcar'}
+                </button>
+                <button onclick="deleteTask('${task.docId}')" class="btn-delete">Eliminar</button>
+            </div>
+        `;
+        container.appendChild(taskCard);
+    });
+}
     emptyState.classList.add('hidden');
     container.innerHTML = filteredTasks.map(task => `
         <div class="bg-white rounded-2xl shadow-lg p-6 task-card ${task.estado === 'Completada' ? 'completed' : ''}">
