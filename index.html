@@ -414,20 +414,35 @@ window.deleteTask = async function(docId) {
 };
 
 function updateStats() {
-    const validTasks = tasks.filter(t => t.estado !== 'Eliminado'); [cite: 43]
-    const completed = validTasks.filter(t => t.estado === 'Completada').length; [cite: 44]
-    const pending = validTasks.filter(t => t.estado === 'Pendiente').length; [cite: 44]
-    const total = validTasks.length; [cite: 44]
-    
-    // INYECTAR EN EL HTML (Asegúrate de que estos IDs coincidan con los de tu index.html)
-    if(document.getElementById('totalTasks')) document.getElementById('totalTasks').innerText = total;
-    if(document.getElementById('completedTasks')) document.getElementById('completedTasks').innerText = completed;
-    if(document.getElementById('pendingTasks')) document.getElementById('pendingTasks').innerText = pending;
-    
-    const progress = total === 0 ? 0 : Math.round((completed / total) * 100); [cite: 45]
-    // Si tienes una barra de progreso, la actualizarías aquí
-}
+    let total = 0;
+    let completed = 0;
+    let pending = 0;
 
+    // Un solo recorrido para contar todo
+    tasks.forEach(t => {
+        if (t.estado !== 'Eliminado') {
+            total++;
+            if (t.estado === 'Completada') completed++;
+            if (t.estado === 'Pendiente') pending++;
+        }
+    });
+    
+    // Inyección en el HTML con un helper para evitar repetir document.getElementById
+    const setTargetText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = text;
+    };
+
+    setTargetText('totalTasks', total);
+    setTargetText('completedTasks', completed);
+    setTargetText('pendingTasks', pending);
+    
+    const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
+    
+    // Ejemplo por si usas una barra de progreso Bootstrap o CSS nativo:
+    // const progressBar = document.getElementById('progressBar');
+    // if (progressBar) progressBar.style.width = `${progress}%`;
+}
 function switchTab(tab) {
     currentTab = tab;
     document.getElementById('tabPendientes').classList.toggle('tab-active', tab === 'Pendiente');
