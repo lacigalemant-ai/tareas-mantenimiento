@@ -172,11 +172,11 @@
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-2">Comentarios</label>
-                    <textarea id="taskComentarios" rows="3" placeholder="Detalles adicionales..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition resize-none"></textarea>
+                    <textarea id="taskComentarios" rows="3" placeholder="Detalles adicionales..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"></textarea>
                 </div>
                 <div class="flex gap-3 pt-4">
                     <button type="button" id="cancelTask" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 py-3 rounded-xl font-semibold transition">Cancelar</button>
-                    <button type="submit" id="saveTaskBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg"><i class="fa-solid fa-check mr-2"></i>Guardar</button>
+                    <button type="submit" id="saveTaskBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg"><i class="fa-solid fa-check mr-2"></i>Guardar Tarea</button>
                 </div>
             </form>
         </div>
@@ -205,7 +205,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const tasksCollection = collection(db, 'tareas_mantenimiento');
 
-const LOCALES = ["CC 10 - Cordón","CC 20 - Pocitos","CC 50 - Intendencia","CC 70 - Garibaldi","CC 80 - Munoz","CC 89 - Montevideo Shopping","CC 95 - Atlántida","CC 97 - Portones","CC 99 - Pta. Carretas A","CC 101 - Tres Cruces A","CC 107 - Peatonal","CC 109 - Rodelú","CC 111 - Malvin","CC 113 - Pta. Carretas B","CC 120 - Nuevo Centro","CC 121 - Las Piedras","CC 150 - Fabrica","CC 910 - Ocean. Benito B","CC 920 - Sorocabana","CC 950/800 - Deposito/FNC"];
+const LOCALES = ["CC 10 - Cordón","CC 20 - Pocitos","CC 50 - Intendencia","CC 70 - Garibaldi","CC 80 - Munoz","CC 89 - Montevideo Shopping","CC 95 - Atlántida","CC 97 - Portones","CC 99 - Pta. Carretas"];
 
 const TASKS_DATA = [];
 
@@ -286,31 +286,34 @@ function closeModal() {
 }
 
 async function handleAddTask(e) {
-    e.preventDefault(); [cite: 37]
+    e.preventDefault();
     const task = {
-        local: document.getElementById('taskLocal').value, [cite: 38]
-        tarea: document.getElementById('taskTarea').value, [cite: 38]
-        prioridad: document.getElementById('taskPrioridad').value, [cite: 38]
-        categoría: document.getElementById('taskCategoria').value, [cite: 38]
-        fecha_ingreso: document.getElementById('taskFecha').value, [cite: 38]
-        estado: 'Pendiente', [cite: 38]
-        comentarios: document.getElementById('taskComentarios').value, [cite: 38]
-        nota_cierre: '', [cite: 38]
-        fecha_cierre: '', [cite: 38]
-        createdAt: Date.now() [cite: 38]
+        local: document.getElementById('taskLocal').value,
+        tarea: document.getElementById('taskTarea').value,
+        prioridad: document.getElementById('taskPrioridad').value,
+        categoría: document.getElementById('taskCategoria').value,
+        fecha_ingreso: document.getElementById('taskFecha').value,
+        estado: 'Pendiente',
+        comentarios: document.getElementById('taskComentarios').value,
+        nota_cierre: '',
+        fecha_cierre: '',
+        createdAt: Date.now()
     };
 
     // FALTABA ESTO: Guardar en Firestore y cerrar la ventana
-    await addDoc(tasksCollection, task); [cite: 27]
-    closeModal(); [cite: 37]
+    await addDoc(tasksCollection, task);
+    closeModal();
 }
 
 function applyFilters() {
-    const localFilter = document.getElementById('filterLocal').value; [cite: 39]
-    const prioridadFilter = document.getElementById('filterPrioridad').value; [cite: 39]
-    const categoriaFilter = document.getElementById('filterCategoria').value; [cite: 39]
+    const localFilter = document.getElementById('filterLocal').value;
+    const prioridadFilter = document.getElementById('filterPrioridad').value;
+    const categoriaFilter = document.getElementById('filterCategoria').value;
 
     filteredTasks = tasks.filter(task => {
+        // 0. IMPORTANTE: Excluir tareas eliminadas
+        if (task.estado === 'Eliminado') return false;
+
         // 1. Filtrar por la pestaña activa (Pendiente o Completada)
         if (task.estado !== currentTab) return false;
 
@@ -331,8 +334,8 @@ function applyFilters() {
 }
 
 function renderTasks() {
-    const container = document.getElementById('tasksContainer'); [cite: 39]
-    const emptyState = document.getElementById('emptyState'); [cite: 40]
+    const container = document.getElementById('tasksContainer');
+    const emptyState = document.getElementById('emptyState');
 
     // Limpiar el contenedor antes de dibujar
     container.innerHTML = '';
@@ -347,29 +350,6 @@ function renderTasks() {
     emptyState.classList.add('hidden');
 
     // Dibujar cada tarea
-    filteredTasks.forEach(task => {
-        const taskCard = document.createElement('div');
-        taskCard.className = `task-card ${task.prioridad.toLowerCase()}-priority`; // Ejemplo de clases CSS
-        
-        taskCard.innerHTML = `
-            <div class="task-header">
-                <h3>${task.tarea}</h3>
-                <span class="badge">${task.prioridad}</span>
-            </div>
-            <p><strong>Local:</strong> ${task.local}</p>
-            <p><strong>Categoría:</strong> ${task.categoría}</p>
-            <p>${task.comentarios || 'Sin comentarios'}</p>
-            <div class="task-actions">
-                <button onclick="toggleTask('${task.docId}')">
-                    ${task.estado === 'Pendiente' ? 'Completar' : 'Desmarcar'}
-                </button>
-                <button onclick="deleteTask('${task.docId}')" class="btn-delete">Eliminar</button>
-            </div>
-        `;
-        container.appendChild(taskCard);
-    });
-}
-    emptyState.classList.add('hidden');
     container.innerHTML = filteredTasks.map(task => `
         <div class="bg-white rounded-2xl shadow-lg p-6 task-card ${task.estado === 'Completada' ? 'completed' : ''}">
             <div class="flex items-start justify-between gap-4">
@@ -414,35 +394,21 @@ window.deleteTask = async function(docId) {
 };
 
 function updateStats() {
-    let total = 0;
-    let completed = 0;
-    let pending = 0;
-
-    // Un solo recorrido para contar todo
-    tasks.forEach(t => {
-        if (t.estado !== 'Eliminado') {
-            total++;
-            if (t.estado === 'Completada') completed++;
-            if (t.estado === 'Pendiente') pending++;
-        }
-    });
+    const validTasks = tasks.filter(t => t.estado !== 'Eliminado');
+    const completed = validTasks.filter(t => t.estado === 'Completada').length;
+    const pending = validTasks.filter(t => t.estado === 'Pendiente').length;
+    const total = validTasks.length;
     
-    // Inyección en el HTML con un helper para evitar repetir document.getElementById
-    const setTargetText = (id, text) => {
-        const el = document.getElementById(id);
-        if (el) el.innerText = text;
-    };
-
-    setTargetText('totalTasks', total);
-    setTargetText('completedTasks', completed);
-    setTargetText('pendingTasks', pending);
+    // INYECTAR EN EL HTML (Asegúrate de que estos IDs coincidan con los de tu index.html)
+    if(document.getElementById('totalCount')) document.getElementById('totalCount').innerText = total;
+    if(document.getElementById('completedCount')) document.getElementById('completedCount').innerText = completed;
+    if(document.getElementById('pendingCount')) document.getElementById('pendingCount').innerText = pending;
     
     const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
-    
-    // Ejemplo por si usas una barra de progreso Bootstrap o CSS nativo:
-    // const progressBar = document.getElementById('progressBar');
-    // if (progressBar) progressBar.style.width = `${progress}%`;
+    if(document.getElementById('progressPercent')) document.getElementById('progressPercent').innerText = progress + '%';
+    if(document.getElementById('progressBar')) document.getElementById('progressBar').style.width = progress + '%';
 }
+
 function switchTab(tab) {
     currentTab = tab;
     document.getElementById('tabPendientes').classList.toggle('tab-active', tab === 'Pendiente');
